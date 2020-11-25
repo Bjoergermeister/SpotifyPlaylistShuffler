@@ -1,0 +1,11 @@
+<p>{{name}}</p>
+
+<ul id="tracks">
+    {{#each tracks}}
+    <li>{{this.name}}</li>
+    {{/each}}
+</ul>
+
+<div id="controls">
+    <a class="button" data-id="{{id}}" onclick="Api.shuffle(this)">Shuffle</a>
+</div>

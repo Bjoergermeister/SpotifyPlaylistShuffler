@@ -1,0 +1,129 @@
+* {
+  font-family: "Baloo 2";
+  font-size: 24px;
+  color: white;
+}
+
+body {
+  background: #141414;
+}
+
+ul {
+  list-style-type: none;
+}
+
+button,
+.button {
+  background-color: lightgreen;
+  border: none;
+  border-radius: 25px;
+  margin: 10px;
+  padding: 15px 10px;
+  cursor: pointer;
+}
+
+#user {
+  display: block;
+  max-width: 250px;
+  min-height: 300px;
+  margin: auto;
+  padding-top: 20px;
+  background: #202020;
+  border-radius: 5%;
+}
+
+#user p {
+  display: block;
+  margin: auto;
+  text-align: center;
+}
+
+#user img {
+  display: block;
+  width: 200px;
+  height: 200px;
+  margin: auto;
+}
+
+/* Playlists */
+#playlists {
+  margin-top: 100px;
+  display: flex;
+  flex-direction: row;
+}
+
+#playlists li {
+  position: relative;
+  width: 250px;
+  height: 250px;
+
+  margin: 10px;
+}
+
+#playlists img {
+  border-radius: 10px;
+  width: 250px;
+  height: 250px;
+}
+
+#playlists p {
+  box-sizing: border-box;
+  margin: auto;
+}
+
+#playlist button {
+  margin: auto;
+}
+
+/* Content and image sections */
+#playlists .playlist-image,
+#playlists .playlist-content {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 250px;
+  height: 250px;
+
+  background: #202020;
+  border-radius: 5px;
+}
+
+/* Hover effect */
+#playlists li:not(:hover) .playlist-image {
+  transform: translate(0px);
+  transition: 0.5s;
+}
+
+#playlists li:hover .playlist-image {
+  transform: translateY(-100px);
+  transition: 0.5s;
+}
+
+#playlists li:not(:hover) .playlist-content {
+  transform: translate(0px);
+  transition: 0.5s;
+}
+
+#playlists li:hover .playlist-content {
+  transform: translateY(100px);
+  transition: 0.5s;
+}
+
+#tracks {
+  margin: 0px 0px 150px 0px;
+}
+
+#controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+
+  /*box-shadow: lightgray 1px 1px 1px 10px;*/
+  position: fixed;
+  background: #303030;
+  bottom: 0px;
+  left: 0px;
+  height: 100px;
+  width: 100%;
+}

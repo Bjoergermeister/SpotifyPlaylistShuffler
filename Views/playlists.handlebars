@@ -1,0 +1,20 @@
+<section id="user">
+    <img src="{{user.image}}" alt="Profilbild" />
+    <p>{{user.name}}</p>
+    <p>{{user.country}}</p>
+</section>
+
+<ul id="playlists">
+    {{#each playlists}}
+    <li>
+        <section class="playlist-content">
+            <p>{{this.name}}</p>
+            <a class="button" href="/playlist/{{this.id}}?name={{this.name}}&tracks={{this.tracks.total}}">View
+                Tracks</a>
+        </section>
+        <section class="playlist-image">
+            <img src="{{this.images.0.url}}" alt="Titelbild">
+        </section>
+    </li>
+    {{/each}}
+</ul>
