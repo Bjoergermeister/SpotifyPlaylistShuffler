@@ -1,32 +1,96 @@
 * {
   font-family: "Baloo 2";
-  font-size: 24px;
   color: white;
 }
 
+a,
+p {
+  font-size: 24px;
+}
+
 body {
+  margin: 0px;
   background: #141414;
+}
+
+a {
+  text-decoration: none;
+}
+
+h1 {
+  font-size: 40px;
+}
+
+h6 {
+  margin: 0px;
 }
 
 ul {
   list-style-type: none;
 }
 
+/* Title */
+.title {
+  width: 200px;
+  display: block;
+  margin: auto;
+
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.title h1 {
+  margin-left: 10px;
+  line-height: 12px;
+}
+
+.title span {
+  color: #51ff4d;
+}
+
+.login {
+  width: 250px;
+  display: block;
+  margin: 100px auto;
+
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.text-centered {
+  text-align: center;
+}
+
+.centered {
+  margin: auto;
+}
+
 button,
 .button {
-  background-color: lightgreen;
-  border: none;
-  border-radius: 25px;
+  color: black;
+  background-color: white;
+  border-radius: 15px;
   margin: 10px;
-  padding: 15px 10px;
+  padding: 10px 20px;
   cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover,
+.button:hover {
+  background-color: #51ff4d;
+  transition: 0.3s;
 }
 
 #user {
   display: block;
   max-width: 250px;
   min-height: 300px;
-  margin: auto;
+  margin: 20px auto;
   padding-top: 20px;
   background: #202020;
   border-radius: 5%;
@@ -47,7 +111,7 @@ button,
 
 /* Playlists */
 #playlists {
-  margin-top: 100px;
+  margin-top: 20px;
   display: flex;
   flex-direction: row;
 }
@@ -61,7 +125,6 @@ button,
 }
 
 #playlists img {
-  border-radius: 10px;
   width: 250px;
   height: 250px;
 }
@@ -76,41 +139,64 @@ button,
 }
 
 /* Content and image sections */
+.playlist-image-large {
+  width: 250px;
+  height: 250px;
+}
+
+.playlist-image-normal {
+  width: 150px;
+  height: 150px;
+}
+
 #playlists .playlist-image,
 #playlists .playlist-content {
+  width: 250px;
+  height: 250px;
   position: absolute;
   top: 0px;
   left: 0px;
-  width: 250px;
-  height: 250px;
-
-  background: #202020;
-  border-radius: 5px;
 }
 
-/* Hover effect */
-#playlists li:not(:hover) .playlist-image {
-  transform: translate(0px);
-  transition: 0.5s;
+#playlists .playlist-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  opacity: 0;
+  background: rgba(0, 0, 0, 0.9);
+  transition: 0.3s;
 }
 
-#playlists li:hover .playlist-image {
-  transform: translateY(-100px);
-  transition: 0.5s;
+#playlists .playlist-content:hover {
+  opacity: 1;
+  transition: 0.3s;
 }
 
-#playlists li:not(:hover) .playlist-content {
-  transform: translate(0px);
-  transition: 0.5s;
+/*** Playlist ***/
+#header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 200px;
+  margin: 0px;
+  background: #101010;
+  box-shadow: 0px 6px 10px black;
 }
 
-#playlists li:hover .playlist-content {
-  transform: translateY(100px);
-  transition: 0.5s;
+#header img {
+  margin: 20px;
+}
+
+#header .name {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 #tracks {
-  margin: 0px 0px 150px 0px;
+  margin: 250px 0px 120px 0px;
 }
 
 #controls {
@@ -119,11 +205,12 @@ button,
   align-items: center;
   justify-content: center;
 
-  /*box-shadow: lightgray 1px 1px 1px 10px;*/
   position: fixed;
-  background: #303030;
+  background: #101010;
   bottom: 0px;
   left: 0px;
   height: 100px;
   width: 100%;
+
+  box-shadow: 0px -6px 10px black;
 }

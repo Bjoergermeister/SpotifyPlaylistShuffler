@@ -44,10 +44,7 @@ class Playlist {
         this.tracks = [];
     }
 
-    addTracks(newTracks){
-        this.totalTracks += newTracks.length;
-        this.tracks.push(...newTracks);
-    }
+    addTracks = (newTracks) => this.tracks.push(...newTracks);
 
     shuffle(){
         var j, x, i;

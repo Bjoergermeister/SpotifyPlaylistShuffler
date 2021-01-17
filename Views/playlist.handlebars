@@ -1,4 +1,7 @@
-<p>{{name}}</p>
+<div id="header">
+    <img class="playlist-image-normal" src="{{image}}" alt="Cover">
+    <h1 class="name">{{name}}</h1>
+</div>
 
 <ul id="tracks">
     {{#each tracks}}
@@ -7,5 +10,6 @@
 </ul>
 
 <div id="controls">
-    <a class="button" data-id="{{id}}" onclick="Api.shuffle(this)">Shuffle</a>
+    <a class="button" href="/playlists">Zurück</a>
+    <a class="button" data-id="{{id}}" onclick="Api.shuffle(this)">Mischen</a>
 </div>

@@ -1,7 +1,7 @@
 const fetch = require("node-fetch"); 
 const querystring = require("querystring");
 const { Session } = require("./Session");
-const { User, Authorization } = require("./Spotify");
+const { User, Authorization, Playlist } = require("./Spotify");
 
 const baseURL = "https://api.spotify.com/v1/";
 
@@ -119,7 +119,21 @@ class SpotifyAPI {
         return response;
     }
 
-    static async getTracksFromPlaylist(accessToken, id, totalTracks){
+    static async getPlaylist(accessToken, id){
+        const options = getRequestOptions("GET", accessToken);
+
+        return await fetch(baseURL + `playlists/${id}?fields=id,images,name,tracks.total`, options)
+            .then(async (result) => {
+                const { id, name, images, tracks } = await result.json();
+                return {"success": true, data: new Playlist(name, id, images[0].url, tracks.total)};
+            })
+            .catch((error) => {
+                return {"success": false};
+            });
+    }
+
+    static async getTracksFromPlaylist(accessToken, id, playlist){
+        console.log(playlist);
         const options = getRequestOptions("GET", accessToken);
 
         let promises = [];
@@ -127,10 +141,10 @@ class SpotifyAPI {
         let offset = 0;
         let limit = 100;
 
-        while(offset < totalTracks)
+        while(offset < playlist.totalTracks)
         {
-            limit = (offset + 100 < totalTracks) ? 100 : totalTracks - offset;
-            await fetch(baseURL + `playlists/${id}/tracks?limit=${limit}&offset=${offset}&fields=items(track(name,id, uri)),limit,offset`, options)
+            limit = (offset + 100 < playlist.totalTracks) ? 100 : playlist.totalTracks - offset;
+            await fetch(baseURL + `playlists/${id}/tracks?limit=${limit}&offset=${offset}&fields=items(track(name,id,uri))`, options)
             .then((result) => {
                 if (result.status !== 200) return {"success": false};
                 promises.push(result.json());
@@ -140,18 +154,14 @@ class SpotifyAPI {
             offset += 100;
         }
 
-        const response = await Promise.all(promises).then((requests) => {
-            let tracks = [];
+        return await Promise.all(promises).then((requests) => {
             requests.forEach((request) => {
-                const offset = request.offset;
-                request.items.forEach((item, index) => {
-                    tracks[offset + index] = item.track;
-                });
+                const newTracks = request.items.map((item) => item.track);
+                playlist.addTracks(newTracks);
             });
-            return {"success": true, data: tracks}
-        });
 
-        return response;
+            return {"success": true}
+        });
     }
 
     static async clearPlaylist(accessToken, id, tracks){

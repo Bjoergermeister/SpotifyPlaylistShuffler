@@ -98,7 +98,6 @@ app.get("/playlists", async (req, res) => {
 app.get("/playlist/:playlistid", async function(req, res) {
   //Get playlist id from url
   const playlistid = req.params.playlistid;
-  const {name, tracks} = req.query;
   if (nullOrUndefined(playlistid)) {
     res.redirect("/");
     return;
@@ -112,17 +111,24 @@ app.get("/playlist/:playlistid", async function(req, res) {
   }
 
   await session.refreshIfExpired(client);
+  let response = null;
 
-  //Get playlist
-  const playlist = await SpotifyAPI.getTracksFromPlaylist(session.authorization.accessToken, playlistid, tracks);
-  if (playlist.success == false) {
+  response = await SpotifyAPI.getPlaylist(session.authorization.accessToken, playlistid);
+  if (response.success == false){
     res.redirect("/");
     return;
   }
 
-  session.currentPlaylist = playlist.data;
+  session.currentPlaylist = response.data;
+  
+  //Get playlist
+  response = await SpotifyAPI.getTracksFromPlaylist(session.authorization.accessToken, playlistid, session.currentPlaylist);
+  if (response.success == false) {
+    res.redirect("/");
+    return;
+  }
 
-  res.render("playlist", {name, id: playlistid, tracks: playlist.data});
+  res.render("playlist", session.currentPlaylist);
 });
 
 app.get("/shuffle/:playlistid", async function(req, res){
@@ -158,19 +164,6 @@ app.listen(process.env.PORT, () => {
 });
 
 /*Helper functions*/
-function getAuthorizationURL(state) {
-  const baseAuthorizationURL = "https://accounts.spotify.com/authorize?";
-  const parameters = querystring.stringify({
-    response_type: "code",
-    client_id: client.id,
-    scope: process.env.scope,
-    redirect_uri: process.env.REDIRECT_URI,
-    state: state,
-  });
-
-  return baseAuthorizationURL + parameters;
-}
-
 function shufflePlaylist(playlist) {
   var j, x, i;
   for (i = playlist.length - 1; i > 0; i--) {

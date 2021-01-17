@@ -4,16 +4,18 @@
     <p>{{user.country}}</p>
 </section>
 
+<h1 class="text-centered">Deine Playlists</h1>
+
 <ul id="playlists">
     {{#each playlists}}
     <li>
-        <section class="playlist-content">
-            <p>{{this.name}}</p>
-            <a class="button" href="/playlist/{{this.id}}?name={{this.name}}&tracks={{this.tracks.total}}">View
-                Tracks</a>
-        </section>
-        <section class="playlist-image">
+        <section class="playlist-image-large">
             <img src="{{this.images.0.url}}" alt="Titelbild">
+        </section>
+        <section class="playlist-content">
+            <h2 class="text-centered">{{this.name}}</h2>
+            <a class="button text-centered"
+                href="/playlist/{{this.id}}?name={{this.name}}&totalTracks={{this.tracks.total}}">Ansehen</a>
         </section>
     </li>
     {{/each}}
