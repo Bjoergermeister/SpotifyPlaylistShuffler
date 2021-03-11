@@ -16,3 +16,7 @@ Other than that, this project's main purpose is to learn. Here's a list of thing
 - Express
 - OAuth2
 - Handlebars
+
+### License
+
+Licensed under the [MIT License](LICENSE).
