@@ -10,7 +10,7 @@ I once was in a situation where I needed to shuffle the songs in a playlist and 
 
 ## What I learned
 
-Other than that, this project's main purpose is to learn. Here's a list of things I learned about during my work in this project:
+Other than that, this project's main purpose is to learn. Here's a list of things I learned about during my work on this project:
 
 - Node.js
 - Express

@@ -133,7 +133,6 @@ class SpotifyAPI {
     }
 
     static async getTracksFromPlaylist(accessToken, id, playlist){
-        console.log(playlist);
         const options = getRequestOptions("GET", accessToken);
 
         let promises = [];

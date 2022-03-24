@@ -1,8 +1,12 @@
-<section id="user">
+<header>
     <img src="{{user.image}}" alt="Profilbild" />
-    <p>{{user.name}}</p>
-    <p>{{user.country}}</p>
-</section>
+    <div id="user-context-menu">
+        <h2 class="name">{{ user.name }}</h2>
+    </div>
+
+    <h1>Meine Playlists</h1>
+    
+</header>
 
 <h1 class="text-centered">Deine Playlists</h1>
 
@@ -15,7 +19,7 @@
         <section class="playlist-content">
             <h2 class="text-centered">{{this.name}}</h2>
             <a class="button text-centered"
-                href="/playlist/{{this.id}}?name={{this.name}}&totalTracks={{this.tracks.total}}">Ansehen</a>
+                href="/playlist/{{this.id}}">Ansehen</a>
         </section>
     </li>
     {{/each}}

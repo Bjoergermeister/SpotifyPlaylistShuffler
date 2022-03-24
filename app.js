@@ -12,7 +12,6 @@ const { Client } = require("./JS/Spotify");
 const { Session } = require("./JS/Session");
 const { nullOrUndefined, generateRandomString } = require("./JS/Helper");
 
-const app = express();
 
 //Authorization variables
 const client = new Client(process.env.CLIENT_ID, process.env.CLIENT_SECRET);
@@ -21,6 +20,7 @@ const sessions = new Map();
 var stateKey = "spotify_auth_state";
 
 //Setup express
+const app = express();
 app.engine("handlebars", handlebars({defaultLayout: "default", layoutsDir: path.join(__dirname, "/Views/Layouts")}));
 app.set("views", path.join(__dirname, "Views"));
 app.set("view engine", "handlebars");
@@ -92,7 +92,7 @@ app.get("/playlists", async (req, res) => {
   }
 
   //Render page
-  res.render("playlists", {user: userdata.data, playlists: playlists.data});
+  res.render("playlists", { user: userdata.data, playlists: playlists.data });
 });
 
 app.get("/playlist/:playlistid", async function(req, res) {
@@ -106,6 +106,13 @@ app.get("/playlist/:playlistid", async function(req, res) {
   //Get session
   const session = Session.getFromRequest(req, sessions);
   if (nullOrUndefined(session)) {
+    res.redirect("/");
+    return;
+  }
+
+  //Get user data
+  const userdata = await SpotifyAPI.getUserData(session.authorization.accessToken);
+  if (userdata.success === false) {
     res.redirect("/");
     return;
   }
@@ -128,7 +135,7 @@ app.get("/playlist/:playlistid", async function(req, res) {
     return;
   }
 
-  res.render("playlist", session.currentPlaylist);
+  res.render("playlist", { user: userdata.data, playlist: session.currentPlaylist });
 });
 
 app.get("/shuffle/:playlistid", async function(req, res){
