@@ -4,14 +4,10 @@
         <h2 class="name">{{ user.name }}</h2>
     </div>
 
-    <h1>{{ playlist.name }}</h1>
-    
-</header>
+    <h1 style="transform: translate(-100%, -50%);">{{ playlist.name }}</h1>
+    <img class="playlist-image playlist-image-normal" src="{{ playlist.image }}" alt="Cover">
 
-<!--div id="header">
-    <img class="playlist-image-normal" src="{{image}}" alt="Cover">
-    <h1 class="name">{{name}}</h1>
-</div-->
+</header>
 
 <ul id="tracks">
     {{#each playlist.tracks}}
