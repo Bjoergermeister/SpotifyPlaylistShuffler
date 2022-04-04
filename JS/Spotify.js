@@ -16,6 +16,19 @@ class Authorization {
         this.tokenTimestamp = Date.now();
     }
 
+    async refreshIfExpired(client){
+        if (isExpired() === false) {
+            return;
+        }
+    
+        const result = await SpotifyAPI.refreshToken(client, this.refreshToken);
+        if (result.success === false) {
+            return;
+        }
+
+        this.accessToken = result.data;
+      }
+
     isExpired(){
         const passedTimeSinceTokenReceived = Date.now() - this.tokenTimestamp;
         const millisecondsInOneHour = 60 * 60 * 1000;

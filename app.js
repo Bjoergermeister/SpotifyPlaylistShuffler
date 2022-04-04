@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 const express = require("express");
-const session = require("express-session")
+const express_session = require("express-session")
 const bodyparser = require("body-parser");
 const cors = require("cors");
 const cookie_parser = require("cookie-parser");
@@ -34,139 +34,138 @@ app.set("view engine", "handlebars");
 app
   .use(express.static("public"))
   .use(cors())
-  .use(session(sessionSettings))
+  .use(express_session(sessionSettings))
   .use(cookie_parser())
   .use(bodyparser.json());
 
-app.get("/", (req, res) => {
-  res.render("index");
+app.get("/", (_, response) => {
+  response.render("index");
 });
 
 /** Login **/
-app.get("/login", (req, res) => {
+app.get("/login", (_, response) => {
     
   //Preparing authorization
   const state = generateRandomString(16);
-  res.cookie(stateKey, state);
+  response.cookie(stateKey, state);
 
-  res.redirect(SpotifyAPI.getAuthorizationURL(client, process, state));
+  response.redirect(SpotifyAPI.getAuthorizationURL(client, process, state));
 });
 
-app.get("/authorization", async (req, res) => {
-    var code = req.query.code || null;
-    var state = req.query.state || null;
-    var storedState = req.cookies ? req.cookies[stateKey] : null;
+app.get("/authorization", async (request, response) => {
+  var code = request.query.code || null;
+  var state = request.query.state || null;
+  var storedState = request.cookies ? request.cookies[stateKey] : null;
 
-    if (state === null || storedState !== state) {
-        response.redirect("error");
-        return;
-    }
+  if (state === null || storedState !== state) {
+    response.redirect("error");
+    return;
+  }
   
-    res.clearCookie(stateKey);
-    const result = await SpotifyAPI.receiveToken(client, code, process.env.REDIRECT_URI);
+  response.clearCookie(stateKey);
+  const [token_success, authorization] = await SpotifyAPI.receiveToken(client, code, process.env.REDIRECT_URI);
+  if (token_success === false) {
+    console.log("[SpotifyAPI] Receiving tokens failed");
+    response.redirect("/");
+    return;
+  }
 
-    if (result.success === false) {
-        res.redirect("/");
-        return;
-    }
+  // Get user data
+  const [user_success, user] = await SpotifyAPI.getUserData(authorization.accessToken);
+  if (user_success === false) {
+    console.log("[SpotifyAPI] Getting user data failed");
+    response.redirect("/");
+    return;
+  }
 
-    req.session.id = result.session.id;
-    req.session.accessToken = result.session.authorization.accessToken;
-    req.session.refreshToken = result.session.authorization.refreshToken;
-    req.session.tokenTimestamp = result.session.authorization.tokenTimestamp;
+  // Save data in session
+  request.session.authorization = authorization;
+  request.session.user = user;
 
-    res.redirect("/playlists");
+  response.redirect("/playlists");
 });
 
-app.get("/playlists", async (req, res) => {
-  if (req.session.id === false){
-    res.redirect("/");
+app.get("/playlists", async (request, response) => {
+  if (!request.session.authorization){
+    console.log("[SESSION] Invalid session, redirecting to login page");
+    response.redirect("/");
     return;
   }
 
-  //Get user data
-  const userdata = await SpotifyAPI.getUserData(req.session.accessToken);
-  if (userdata.success === false) {
-    res.redirect("/");
-    return;
-  }
+  const { authorization, user } = request.session;
+  request.session.playlist = null;
 
   //Get user's playlists
-  const playlists = await SpotifyAPI.getPlaylists(req.session.accessToken, userdata.data.id);
-  if (playlists.success === false) {
-    res.redirect("/");
+  const [success, playlists] = await SpotifyAPI.getPlaylists(authorization.accessToken, user.id);
+  if (success === false) {
+    console.log("[SpotifyAPI] Getting playlist failed")
+    response.redirect("/");
     return;
   }
 
   //Render page
-  res.render("playlists", { user: userdata.data, playlists: playlists.data });
+  response.render("playlists", { user: user, playlists: playlists });
 });
 
-app.get("/playlist/:playlistid", async function(req, res) {
-  if (req.session.id === false){
-    res.redirect("/");
-    return;
-  }
-  //Get playlist id from url
-  const playlistid = req.params.playlistid;
-  if (nullOrUndefined(playlistid)) {
-    res.redirect("/");
+app.get("/playlist/:playlistid", async (request, response) => {
+  if (!request.session.authorization){
+    console.log("[SESSION] Invalid session, redirecting to login page");
+    response.redirect("/");
     return;
   }
 
-  //Get user data
-  const userdata = await SpotifyAPI.getUserData(req.session.accessToken);
-  if (userdata.success === false) {
-    res.redirect("/");
+  // Get playlist id from url
+  const playlistID = request.params.playlistid;
+  if (nullOrUndefined(playlistID)) {
+    response.redirect("/");
     return;
   }
 
-  let response = null;
+  const { authorization, user } = request.session;
 
-  response = await SpotifyAPI.getPlaylist(req.session.accessToken, playlistid);
-  if (response.success == false){
-    res.redirect("/");
+  // Get playlist
+  const [playlist_success, playlist] = await SpotifyAPI.getPlaylist(authorization.accessToken, playlistID);
+  if (playlist_success == false){
+    response.redirect("/");
     return;
   }
 
-  const currentPlaylist = response.data;
-  req.session.currentPlaylist = currentPlaylist;
+  request.session.playlist = playlist;
   
-  //Get playlist
-  response = await SpotifyAPI.getTracksFromPlaylist(req.session.accessToken, playlistid, currentPlaylist);
-  if (response.success == false) {
-    res.redirect("/");
+  // Get tracks in playlist
+  const track_success = await SpotifyAPI.getTracksFromPlaylist(authorization.accessToken, playlistID, playlist);
+  if (track_success == false) {
+    response.redirect("/");
     return;
   }
 
-  res.render("playlist", { user: userdata.data, playlist: currentPlaylist });
+  response.render("playlist", { user, playlist });
 });
 
-app.get("/shuffle/:playlistid", async function(req, res){
-  //Get playlist id from url
-  const playlistid = req.params.playlistid;
+app.get("/shuffle/:playlistid", async (request, response) => {
+  const playlistID = request.params.playlistid;
 
-  //Check session
-  if (req.session.id === false){
-    res.redirect("/");
+  // Check session
+  if (!request.session.authorization){
+    request.redirect("/");
     return;
   }
 
   //Delete tracks in playlist, shuffle and re-add tracks
-  const currentPlaylist = req.session.currentPlaylist;
-  if (currentPlaylist){
-    SpotifyAPI.clearPlaylist(req.session.accessToken, playlistid, currentPlaylist.tracks);
-    shufflePlaylist(currentPlaylist.tracks);
-    SpotifyAPI.addTracksToPlaylist(req.session.accessToken, playlistid, currentPlaylist.tracks);
-    res.json(currentPlaylist.tracks);
+  const tracks = request.session.playlist.tracks;
+  if (tracks.length > 0){
+    SpotifyAPI.clearPlaylist(request.session.accessToken, playlistID, tracks);
+    shufflePlaylist(tracks);
+    SpotifyAPI.addTracksToPlaylist(request.session.accessToken, playlistID, tracks);
+    response.json(tracks);
     return;
   }
 
-  res.redirect("/error");
+  response.redirect("/error");
 });
 
-app.get("/error", function(req, res){
-    res.render("error");
+app.get("/error", (_, response) => {
+    response.render("error");
 });
 
 app.listen(process.env.PORT, () => {

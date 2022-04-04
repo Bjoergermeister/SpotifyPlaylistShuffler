@@ -1,6 +1,4 @@
 const fetch = require("node-fetch"); 
-const querystring = require("querystring");
-const { Session } = require("./Session");
 const { User, Authorization, Playlist } = require("./Spotify");
 
 const baseURL = "https://api.spotify.com/v1/";
@@ -9,13 +7,15 @@ class SpotifyAPI {
 
     static getAuthorizationURL(client, process, state){
         const baseAuthorizationURL = "https://accounts.spotify.com/authorize?";
-        return baseAuthorizationURL + querystring.stringify({
-            response_type: "code",
-            client_id: client.id,
-            scope: process.env.SCOPE,
-            redirect_uri: process.env.REDIRECT_URI,
-            state: state,
-        });
+        
+        const params = new URLSearchParams();
+        params.append("response_type", "code");
+        params.append("client_id", client.id);
+        params.append("scope", process.env.SCOPE);
+        params.append("redirect_uri", process.env.REDIRECT_URI);
+        params.append("state", state);
+        
+        return baseAuthorizationURL + params.toString();
     }
 
     static async receiveToken(client, code, redirectURI){
@@ -34,20 +34,12 @@ class SpotifyAPI {
         return await fetch("https://accounts.spotify.com/api/token", options)
         .then(async (result) => {
             if (result.status !== 200) {
-                return {"success": false };
+                return [false, null];
             }
 
             const body = await result.json();
 
-            const authorization = new Authorization(body.access_token, body.refresh_token);
-            const session = new Session(authorization);
-            const cookie = session.getSessionCookie();
-
-            return {
-                "success": true, 
-                session, 
-                cookie
-            };
+            return [true, new Authorization(body.access_token, body.refresh_token)];
         })
         .catch((error) => console.log(error));
     }
@@ -89,9 +81,9 @@ class SpotifyAPI {
         .then(async (result) => {
             if (result.status === 200){
                 const data = await result.json();
-                return { "success": true, data: new User(data.display_name, data.country, data.images[0].url, data.id)};
+                return [true, new User(data.display_name, data.country, data.images[0].url, data.id)];
             }else{
-                return { "success": false, data: {}};
+                return [false, null];
             }
         })
         .catch((error) => {
@@ -105,13 +97,14 @@ class SpotifyAPI {
     static async getPlaylists(accessToken, id){
         const options = getRequestOptions("GET", accessToken);
 
-        let playlist = null;
-
         const response = await fetch(baseURL + `users/${id}/playlists?fields=href,items(name, images, id, tracks.total)`, options)
             .then(async (result) => {
-                if (result.status !== 200) return {"success": false};
+                if (result.status !== 200) {
+                    return [false, null];
+                }
+
                 const data = await result.json();
-                return {"success": true, data: data.items};
+                return [true, data.items];
             })
             .catch((error) => console.log("API Error: " + error));
 
@@ -124,10 +117,10 @@ class SpotifyAPI {
         return await fetch(baseURL + `playlists/${id}?fields=id,images,name,tracks.total`, options)
             .then(async (result) => {
                 const { id, name, images, tracks } = await result.json();
-                return {"success": true, data: new Playlist(name, id, images[0].url, tracks.total)};
+                return [true, new Playlist(name, id, images[0].url, tracks.total)];
             })
             .catch((error) => {
-                return {"success": false};
+                return [false, null];
             });
     }
 
@@ -144,7 +137,9 @@ class SpotifyAPI {
             limit = (offset + 100 < playlist.totalTracks) ? 100 : playlist.totalTracks - offset;
             await fetch(baseURL + `playlists/${id}/tracks?limit=${limit}&offset=${offset}&fields=items(track(name,id,uri))`, options)
             .then((result) => {
-                if (result.status !== 200) return {"success": false};
+                if (result.status !== 200) { 
+                    return false;
+                }
                 promises.push(result.json());
             })
             .catch((error) => console.log("API Error: " + error));
@@ -158,7 +153,7 @@ class SpotifyAPI {
                 playlist.addTracks(newTracks);
             });
 
-            return {"success": true}
+            return true;
         });
     }
 
