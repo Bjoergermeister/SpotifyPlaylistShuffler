@@ -52,6 +52,11 @@ app.get("/login", (_, response) => {
   response.redirect(SpotifyAPI.getAuthorizationURL(client, process, state));
 });
 
+app.get("/logout", (request, response) => {
+  request.session.destroy();
+  response.redirect("/");
+});
+
 app.get("/authorization", async (request, response) => {
   var code = request.query.code || null;
   var state = request.query.state || null;
