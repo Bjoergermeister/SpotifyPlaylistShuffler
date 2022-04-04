@@ -91,7 +91,6 @@ class SpotifyAPI {
                 const data = await result.json();
                 return { "success": true, data: new User(data.display_name, data.country, data.images[0].url, data.id)};
             }else{
-                console.log(result);
                 return { "success": false, data: {}};
             }
         })
@@ -213,7 +212,6 @@ class SpotifyAPI {
         }
 
         const result = await Promise.all(responses).then((results) => {
-            console.log(results);
             return results.every((result) => result.status === 200);
         })
         .catch((error) => {

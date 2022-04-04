@@ -22,8 +22,6 @@ class Session {
     const result = await SpotifyAPI.refreshToken(client, this.authorization.refreshToken);
     if (result.success === false) return;
 
-    console.log(result);
-
     this.authorization.accessToken = result.data;
   }
 
