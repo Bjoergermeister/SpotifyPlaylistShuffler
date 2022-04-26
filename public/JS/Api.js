@@ -19,9 +19,9 @@ class Api {
     const tracks = document.getElementById("tracks");
     tracks.innerHTML = "";
 
-    shuffledPlaylist.forEach((track) => {
+    shuffledPlaylist.forEach((track, index) => {
       const li = document.createElement("LI");
-      li.innerHTML = track.name;
+      li.innerHTML = `${index + 1}. ${track.name}`;
       tracks.appendChild(li);
     });
   }

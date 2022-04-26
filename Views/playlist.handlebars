@@ -12,7 +12,7 @@
 
 <ul id="tracks">
     {{#each playlist.tracks}}
-    <li>{{ this.name }}</li>
+    <li>{{increment @index}}. {{ this.name }}</li>
     {{/each}}
 </ul>
 

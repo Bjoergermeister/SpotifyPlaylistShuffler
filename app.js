@@ -26,9 +26,14 @@ const client = new Client(process.env.CLIENT_ID, process.env.CLIENT_SECRET);
 
 const stateKey = "spotify_auth_state";
 
+//Setup handlebars helper
+const helpers = {
+  "increment": (value, options) => value + 1
+}
+
 //Setup express
 const app = express();
-app.engine("handlebars", handlebars({defaultLayout: "default", layoutsDir: path.join(__dirname, "/Views/Layouts")}));
+app.engine("handlebars", handlebars({helpers: helpers, defaultLayout: "default", layoutsDir: path.join(__dirname, "/Views/Layouts")}));
 app.set("views", path.join(__dirname, "Views"));
 app.set("view engine", "handlebars");
 app
