@@ -5,6 +5,7 @@ class Api {
   static async shuffle(button)
   {
     const url = baseURL + `shuffle/${button.dataset.id}`;
+    console.log(url);
     const options = getRequestOptions("GET", null);
 
     const shuffledPlaylist = await fetch(url, options)
@@ -16,14 +17,19 @@ class Api {
       console.log(error)
     });
 
+    // Create a copy of the table
     const tracks = document.getElementById("tracks");
-    tracks.innerHTML = "";
+    const tracksClone = tracks.cloneNode(true);
+    const tableRows = tracksClone.querySelectorAll("tbody tr");
 
+    // Update content of the copy
     shuffledPlaylist.forEach((track, index) => {
-      const li = document.createElement("LI");
-      li.innerHTML = `${index + 1}. ${track.name}`;
-      tracks.appendChild(li);
+      tableRows[index].children[1].children[0].src = track.album.images.pop().url;
+      tableRows[index].children[2].innerText = track.name;
     });
+
+    // Replace table with its copy (in order to minimize DOM manipulations)
+    tracks.replaceWith(tracksClone);
   }
 
 }

@@ -1,6 +1,9 @@
 * {
   font-family: "Baloo 2";
   color: white;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 :root {
@@ -13,6 +16,9 @@ p {
 }
 
 body {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  grid-template-rows: 1fr;
   margin: 0px;
   background: #222;
 }
@@ -38,6 +44,23 @@ ul {
   list-style-type: none;
 }
 
+/*** Common styles ***/
+.text-centered {
+  text-align: center;
+}
+
+.centered {
+  margin: auto;
+}
+
+.box-shadow {
+  box-shadow: 1px 1px 10px 2px #111;
+}
+
+.hoverable:hover {
+  cursor: pointer;
+}
+
 /* Title */
 .title {
   width: 200px;
@@ -52,7 +75,7 @@ ul {
 
 .title h1 {
   margin-left: 10px;
-  line-height: 12px;
+  line-height: 40px;
 }
 
 .title span {
@@ -70,14 +93,6 @@ ul {
   transform: translate(-50%, -50%);
 }
 
-.text-centered {
-  text-align: center;
-}
-
-.centered {
-  margin: auto;
-}
-
 button,
 .button {
   color: black;
@@ -85,7 +100,6 @@ button,
   border-radius: 24px;
   margin: 10px;
   padding: 5px 24px;
-  cursor: pointer;
   transition: 0.3s;
 }
 
@@ -98,150 +112,144 @@ button:hover,
 
 /*** Header ***/
 header {
-  position: fixed;
-  top: 0;
-  left: 0;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  grid-template-columns: 300px 1fr;
   width: 100%;
-  height: 150px;
-  margin: 0px;
-  background: #101010;
-  box-shadow: 0px 6px 10px black;
+  height: 250px;
 }
 
 header img {
-  z-index: 2;
-  position: absolute;
-  display: block;
-  width: 100px;
-  height: 100px;
-  top: 50%;
-  left: 50px;
-  transform: translateY(-50%);
-  border-radius: 50%;
-  outline: 10px solid #ccc;
-  cursor: pointer;
+  align-self: center;
+  justify-self: center;
+  grid-row-start: 1;
+  grid-row-end: row2-end;
 }
 
-header .playlist-image {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100px;
-  height: 100px;
-  cursor: default;
-  outline: none;
-  border-radius: 0px;
-  transform: translate(50%, -50%);
-}
-
-#user-context-menu a {
-  margin-left: 120px;
-}
-
-/*** User Context Menu ***/
-#user-context-menu {
-  z-index: 1;
-  position: absolute;
-  display: none;
-  top: 50%;
-  left: 40px;
-  transform: translateY(-50%);
-  min-width: 120px;
-  height: 120px;
-  padding-right: 20px;
-  background: #ccc;
-  border-top-left-radius: 85px;
-  border-bottom-left-radius: 85px;
-}
-
-header img:hover ~ #user-context-menu,
-#user-context-menu:hover {
-  display: block;
-  transition: 0.3s;
-}
-
-header img:hover {
-  background: #ccc;
-  transition: 0.3s ease-in-out;
-}
-
-header .name {
-  margin-left: 120px;
+header img.playlist-image {
+  grid-column: 1;
+  width: 200px;
+  height: 200px;
 }
 
 header h1 {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  margin: 0;
+  justify-self: left;
+  align-self: end;
+  grid-row: 1;
+  grid-column: 2;
+  font-size: 6rem;
+  align-self: end;
+  line-height: 5rem;
+  text-shadow: 1px 1px 10px #111;
+}
+
+header p {
+  grid-row: 2;
+  grid-column: 2;
+}
+
+/***********************/
+/*** Main Navigation ***/
+/***********************/
+
+nav {
+  grid-row: 1;
+  grid-column: 1;
+
+  display: grid;
+  grid-template-columns: 1;
+  grid-template-rows: 100px 1fr 100px;
+
+  align-items: center;
+
+  height: 100vh;
+  background: #111;
+  width: 300px;
+  padding: 10px;
 }
 
 /* Playlists */
 #playlists {
-  margin-top: 200px;
-  display: flex;
-  flex-direction: row;
-}
-
-#playlists li {
-  position: relative;
-  width: 250px;
-  height: 250px;
-  margin: 10px;
-}
-
-#playlists img {
-  width: 250px;
-  height: 250px;
-}
-
-#playlist button {
-  margin: auto;
-}
-
-/* Content and image sections */
-.playlist-image-large {
-  width: 250px;
-  height: 250px;
-}
-
-.playlist-image-normal {
-  width: 150px;
-  height: 150px;
-}
-
-.playlist a,
-.playlist-image {
-  width: 250px;
-  height: 250px;
-  position: absolute;
-  top: 0px;
-  left: 0px;
-}
-
-.playlist a {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  opacity: 0;
-  background: rgba(0, 0, 0, 0.9);
+  width: 100%;
+}
+
+.navbar-item {
+  border-radius: 5px;
+  position: relative;
+  padding: 5px;
+  height: 70px;
+}
+
+.navbar-item:hover,
+.navbar-item.active {
+  background: #eee;
   transition: 0.3s;
 }
 
-.playlist a:hover {
-  opacity: 1;
+.navbar-item.active svg path,
+.navbar-item:hover svg path {
+  fill: black;
   transition: 0.3s;
-  cursor: pointer;
+}
+
+.navbar-item img,
+.navbar-item svg {
+  display: inline-block;
+  vertical-align: middle;
+  width: 50px;
+  height: 50px;
+}
+
+.navbar-item a,
+.navbar-item span {
+  line-height: 50px;
+  font-weight: 500;
+  font-size: 24px;
+  display: inline-block;
+}
+
+.navbar-item span {
+  padding-left: 10px;
+}
+
+.navbar-item:hover span,
+.navbar-item.active span {
+  color: black;
+  transition: 0.3s;
+}
+
+/*** Content ***/
+#content {
+  grid-row: 1;
+  grid-column: 2;
+  overflow-y: auto;
+  height: 100vh;
+  position: relative;
+}
+
+main {
+  position: relative;
+  padding: 50px;
+  background: rgba(0, 0, 0, 0.5);
+  width: 100%;
+  min-height: calc(100vh - 250px);
 }
 
 /*** Playlist ***/
-#tracks {
-  margin: 200px 0px 150px 0px;
+#tracks thead tr {
+  border-bottom: 5px solid white;
+  transform: translateY(-5px);
 }
 
-#tracks li {
-  margin-top: 10px;
+#tracks tr {
+  margin: 100px;
+}
+
+#tracks tr img {
+  width: 50px;
+  height: 50px;
 }
 
 #controls {
@@ -258,4 +266,53 @@ header h1 {
   width: 100%;
 
   box-shadow: 0px -6px 10px black;
+}
+
+/*** Home ***/
+#user {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+#user img {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  margin: 0px auto 40px auto;
+  display: block;
+}
+
+#user h1 {
+  font-size: 55px;
+}
+
+/*** Shuffle button ***/
+button[name="shuffle"] {
+  position: sticky;
+  float: right;
+  top: 10px;
+  right: 10px;
+  background: hsl(100, 50%, 50%);
+  display: block;
+  border: none;
+  border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  padding: 0;
+}
+
+button[name="shuffle"] svg {
+  width: 75px;
+  height: 75px;
+  margin: 12.5px 12.5px;
+}
+
+button[name="shuffle"]:hover {
+  cursor: pointer;
+}
+
+button[name="shuffle"]:hover svg path {
+  fill: #eee;
 }
