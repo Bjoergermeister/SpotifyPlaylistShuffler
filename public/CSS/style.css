@@ -173,13 +173,16 @@ nav {
   display: flex;
   flex-direction: column;
   width: 100%;
+  max-height: 60vh;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .navbar-item {
   border-radius: 5px;
   position: relative;
-  padding: 5px;
-  height: 70px;
+  height: 60px;
+  margin: 1px 0px;
 }
 
 .navbar-item:hover,
@@ -200,13 +203,19 @@ nav {
   vertical-align: middle;
   width: 50px;
   height: 50px;
+  margin: 5px 0px;
 }
 
-.navbar-item a,
+.navbar-item .hoverable {
+  padding: 0px 5px;
+  display: block;
+  width: 100%;
+}
+
 .navbar-item span {
   line-height: 50px;
   font-weight: 500;
-  font-size: 24px;
+  font-size: 20px;
   display: inline-block;
 }
 
