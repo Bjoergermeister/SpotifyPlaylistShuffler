@@ -11,11 +11,7 @@ const path = require("path");
 const { SpotifyAPI } = require("./JS/SpotifyAPI");
 const { Client } = require("./JS/Spotify");
 const { nullOrUndefined, generateRandomString } = require("./JS/Helper");
-const {
-  increment,
-  isSelectedPlaylist,
-  getColorForPlaylist,
-} = require("./JS/Helper");
+const { increment, isSelectedPlaylist, getColorForPlaylist } = require("./JS/Helper");
 
 const oneDay = 1000 * 60 * 60 * 24;
 const sessionSettings = {
@@ -97,10 +93,8 @@ app.get("/authorization", async (request, response) => {
   }
 
   // Get user data
-  const [user_success, user] = await SpotifyAPI.getUserData(
-    authorization.accessToken
-  );
-  if (user_success === false) {
+  const apiResponse = await SpotifyAPI.getUserData(authorization.accessToken);
+  if (apiResponse.success === false) {
     console.log("[SpotifyAPI] Getting user data failed");
     response.redirect("/");
     return;
@@ -108,7 +102,7 @@ app.get("/authorization", async (request, response) => {
 
   // Save data in session
   request.session.authorization = authorization;
-  request.session.user = user;
+  request.session.user = apiResponse.result;
 
   response.redirect("/home");
 });
@@ -120,96 +114,85 @@ app.get("/home", async (request, response) => {
     return;
   }
 
-  const { authorization, user } = request.session;
+  const user = request.session.user;
+  const accessToken = request.session.authorization.accessToken;
+
   request.session.playlist = null;
 
   //Get user's playlists
-  const [success, playlists] = await SpotifyAPI.getPlaylists(
-    authorization.accessToken,
-    user.id
-  );
-  if (success === false) {
+  const playlistsResponse = await SpotifyAPI.getPlaylists(accessToken, user.id);
+  if (playlistsResponse.success === false) {
     console.log("[SpotifyAPI] Getting playlist failed");
     response.redirect("/");
     return;
   }
 
+  const playlists = playlistsResponse.result;
   request.session.playlists = playlists;
 
   //Render page
-  response.render("home", { user: user, playlists: playlists });
+  response.render("home", { user, playlists });
 });
 
 app.get("/playlist/:playlistid", async (request, response) => {
-  if (!request.session.authorization) {
-    console.log("[SESSION] Invalid session, redirecting to login page");
+  // Get playlist ID from url, return to home if its missing
+  const playlistId = request.params.playlistid;
+  if (nullOrUndefined(playlistId)) {
     response.redirect("/");
     return;
   }
 
-  // Get playlist id from url
-  const playlistID = request.params.playlistid;
-  if (nullOrUndefined(playlistID)) {
+  if (!request.session.authorization) {
+    console.log(`[/playlist/${playlistId}] Invalid session, redirecting to login page`);
     response.redirect("/");
     return;
   }
 
   const { authorization, user, playlists } = request.session;
+  const accessToken = authorization.accessToken;
 
   // Get playlist
-  const [playlist_success, playlist] = await SpotifyAPI.getPlaylist(
-    authorization.accessToken,
-    playlistID
-  );
-  if (playlist_success == false) {
+  const playlistResponse = await SpotifyAPI.getPlaylist(accessToken, playlistId);
+  if (playlistResponse.success === false) {
     response.redirect("/");
     return;
   }
 
+  const playlist = playlistResponse.result;
   request.session.playlist = playlist;
 
   // Get tracks in playlist
-  const track_success = await SpotifyAPI.getTracksFromPlaylist(
-    authorization.accessToken,
-    playlistID,
-    playlist
-  );
-  if (track_success == false) {
+  const tracksResponse = await SpotifyAPI.getPlaylistTracks(accessToken, playlist);
+  if (tracksResponse.success == false) {
     response.redirect("/");
     return;
   }
 
-  response.render("playlist", { user, playlist, playlists, playlistID });
+  const context = { user, playlist, playlists, playlistId };
+  response.render("playlist", context);
 });
 
 app.get("/shuffle/:playlistid", async (request, response) => {
-  const playlistID = request.params.playlistid;
-
   // Check session
   if (!request.session.authorization) {
     request.redirect("/");
     return;
   }
 
-  //Delete tracks in playlist, shuffle and re-add tracks
-  const tracks = request.session.playlist.tracks;
-  if (tracks.length > 0) {
-    shufflePlaylist(tracks);
-    await SpotifyAPI.clearPlaylist(
-      request.session.authorization.accessToken,
-      playlistID,
-      tracks
-    );
-    await SpotifyAPI.addTracksToPlaylist(
-      request.session.authorization.accessToken,
-      playlistID,
-      tracks
-    );
-    response.json(tracks);
+  const playlist = request.session.playlist;
+  const accessToken = request.session.authorization.accessToken;
+
+  if (playlist.tracks.length === 0) {
     return;
   }
 
-  response.redirect("/error");
+  //Delete tracks in playlist, shuffle and re-add tracks
+  shufflePlaylist(playlist.tracks);
+  await SpotifyAPI.clearPlaylist(accessToken, playlist);
+  await SpotifyAPI.addTracksToPlaylist(accessToken, playlist);
+
+  response.json(playlist.tracks);
+  return;
 });
 
 app.get("/error", (_, response) => {

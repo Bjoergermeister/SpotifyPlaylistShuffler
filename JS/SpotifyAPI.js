@@ -2,6 +2,15 @@ const fetch = require("node-fetch");
 const { User, Authorization, Playlist } = require("./Spotify");
 
 const baseURL = "https://api.spotify.com/v1/";
+const TRACKS_PER_REQUEST = 100;
+
+class ApiResponse {
+  constructor(success, error, result) {
+    this.success = success;
+    this.error = error;
+    this.result = result;
+  }
+}
 
 class SpotifyAPI {
   static getAuthorizationURL(client, process, state) {
@@ -32,17 +41,19 @@ class SpotifyAPI {
       body: params,
     };
 
-    return await fetch("https://accounts.spotify.com/api/token", options)
-      .then(async (result) => {
-        if (result.status !== 200) {
-          return [false, null];
-        }
+    try {
+      const url = "https://accounts.spotify.com/api/token";
+      const response = await fetch(url, options);
+      if (response.status !== 200) {
+        return [false, null];
+      }
 
-        const body = await result.json();
-
-        return [true, new Authorization(body.access_token, body.refresh_token)];
-      })
-      .catch((error) => console.log(error));
+      const body = await response.json();
+      return [true, new Authorization(body.access_token, body.refresh_token)];
+    } catch (error) {
+      console.log(error);
+      return [false, null];
+    }
   }
 
   static async refreshToken(client, refreshToken) {
@@ -59,192 +70,163 @@ class SpotifyAPI {
       body: params,
     };
 
-    const result = await fetch(
-      "https://accounts.spotify.com/api/token",
-      options
-    )
-      .then(async (result) => {
-        if (result.status !== 200) return null;
+    try {
+      const url = "https://accounts.spotify.com/api/token";
+      const response = await fetch(url, options);
+      if (response.status !== 200) {
+        return [false, null];
+      }
 
-        const body = await result.json();
-        return body.access_token;
-      })
-      .catch((error) => {
-        console.log(error);
-        return null;
-      });
-
-    return {
-      success: result !== null,
-      result: result,
-    };
+      const body = await response.json();
+      return [true, body.access_token];
+    } catch (error) {
+      console.log(error);
+      return [false, null];
+    }
   }
 
   static async getUserData(accessToken) {
     const options = getRequestOptions("GET", accessToken);
 
-    const response = await fetch(baseURL + "me", options)
-      .then(async (result) => {
-        if (result.status === 200) {
-          const data = await result.json();
-          return [
-            true,
-            new User(
-              data.display_name,
-              data.country,
-              data.images[0].url,
-              data.id
-            ),
-          ];
-        } else {
-          return [false, null];
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    try {
+      const response = await fetch(baseURL + "me", options);
+      if (response.status !== 200) {
+        return new ApiResponse(false, null, null);
+      }
 
-    return response;
+      const body = await response.json();
+      const user = new User(body.display_name, body.country, body.images[0].url, body.id);
+      return new ApiResponse(true, null, user);
+    } catch (error) {
+      console.log(error);
+      return new ApiResponse(false, null, null);
+    }
   }
 
   static async getUserItems(accessToken) {
     const options = getRequestOptions("GET", accessToken);
-    await fetch(baseURL + "me/top/artists", options)
-      .then((response) => {
-        return response.json();
-      })
-      .then((json) => console.log(json));
+
+    try {
+      const response = await fetch(`${baseURL}me/top/artists`, options);
+      if (response.status !== 200) {
+        return new ApiResponse(false, null, null);
+      }
+
+      const body = await response.json();
+      return new ApiResponse(true, null, body);
+    } catch (error) {
+      console.log(error);
+      return new ApiResponse(false, null, null);
+    }
   }
 
   static async getPlaylists(accessToken, id) {
     const options = getRequestOptions("GET", accessToken);
 
-    const response = await fetch(
-      baseURL +
-        `users/${id}/playlists?fields=href,items(name, images, id, tracks.total)`,
-      options
-    )
-      .then(async (result) => {
-        if (result.status !== 200) {
-          return [false, null];
-        }
+    try {
+      const url = `${baseURL}users/${id}/playlists?fields=href,items(name, images, id, tracks.total)`;
+      const response = await fetch(url, options);
+      if (response.status !== 200) {
+        return new ApiResponse(false, null, null);
+      }
 
-        const data = await result.json();
-        return [true, data.items];
-      })
-      .catch((error) => console.log("API Error: " + error));
-
-    return response;
+      const body = await response.json();
+      return new ApiResponse(true, null, body.items);
+    } catch (error) {
+      console.log(error);
+      return new ApiResponse(false, null, null);
+    }
   }
 
   static async getPlaylist(accessToken, id) {
     const options = getRequestOptions("GET", accessToken);
 
-    return await fetch(
-      baseURL + `playlists/${id}?fields=id,images,name,tracks.total`,
-      options
-    )
-      .then(async (result) => {
-        const { id, name, images, tracks } = await result.json();
-        return [true, new Playlist(name, id, images[0].url, tracks.total)];
-      })
-      .catch((error) => {
-        return [false, null];
-      });
+    try {
+      const url = `${baseURL}playlists/${id}?fields=id,images,name,tracks.total`;
+      const response = await fetch(url, options);
+      if (response.status !== 200) {
+        return new ApiResponse(false, null, null);
+      }
+
+      const body = await response.json();
+      const playlist = new Playlist(
+        body.name,
+        body.id,
+        body.images[0].url,
+        body.tracks.total
+      );
+
+      return new ApiResponse(true, null, playlist);
+    } catch (error) {
+      console.log(error);
+      return new ApiResponse(false, null, null);
+    }
   }
 
-  static async getTracksFromPlaylist(accessToken, id, playlist) {
+  static async getPlaylistTracks(accessToken, playlist) {
     const options = getRequestOptions("GET", accessToken);
 
-    let promises = [];
+    const requests = [];
 
-    let offset = 0;
-    let limit = 100;
+    for (let offset = 0; offset < playlist.totalTracks; offset += TRACKS_PER_REQUEST) {
+      const limit = Math.min(TRACKS_PER_REQUEST, playlist.totalTracks - offset);
 
-    while (offset < playlist.totalTracks) {
-      limit =
-        offset + 100 < playlist.totalTracks
-          ? 100
-          : playlist.totalTracks - offset;
-      // await fetch(baseURL + `playlists/${id}/tracks?limit=${limit}&offset=${offset}&fields=items(track(name,id,uri,images(url)))`, options)
-      await fetch(
-        baseURL +
-          `playlists/${id}/tracks?limit=${limit}&offset=${offset}&fields=items(track(name, id, uri, album(name, images)))`,
-        options
-      )
-        .then((result) => {
-          if (result.status !== 200) {
-            return false;
-          }
-          promises.push(result.json());
-        })
-        .catch((error) => console.log("API Error: " + error));
-
-      offset += 100;
+      const fields = "fields=items(track(name,id,uri,album,images))";
+      const url = `${baseURL}playlists/${playlist.id}/tracks?limit=${limit}&offset=${offset}&fields=${fields}`;
+      requests.push(fetch(url, options));
     }
 
-    return await Promise.all(promises).then((requests) => {
-      requests.forEach((request) => {
-        const newTracks = request.items.map((item) => item.track);
-        playlist.addTracks(newTracks);
-      });
+    // Check if any request failed
+    const responses = await Promise.all(requests);
+    if (responses.some((response) => response.status !== 200)) {
+      return new ApiResponse(false, null, null);
+    }
 
-      return true;
-    });
+    const bodies = await Promise.all(responses.map((response) => response.json()));
+    for (const body of bodies) {
+      const newTracks = body.items.map((item) => item.track);
+      playlist.addTracks(newTracks);
+    }
+
+    return new ApiResponse(true, null, null);
   }
 
-  static async clearPlaylist(accessToken, id, tracks) {
-    const responses = [];
+  static async clearPlaylist(accessToken, playlist) {
+    const { tracks, id } = playlist;
+    const requests = [];
 
-    let offset = 0;
-    let limit = 100;
-
-    while (offset < tracks.length) {
-      limit = offset + 100 < tracks.length ? 100 : tracks.length - offset;
+    for (let offset = 0; offset < tracks.length; offset += TRACKS_PER_REQUEST) {
+      const limit = Math.min(TRACKS_PER_REQUEST, tracks.length - offset);
 
       const body = {
-        tracks: tracks.slice(offset, offset + limit).map((track) => {
-          return { uri: track.uri };
-        }),
+        tracks: tracks.slice(offset, offset + limit).map((track) => ({ uri: track.uri })),
       };
 
       const options = getRequestOptions("DELETE", accessToken, body);
-
-      const response = fetch(baseURL + `playlists/${id}/tracks`, options);
-      responses.push(response);
-
-      offset += 100;
+      const request = fetch(`${baseURL}playlists/${id}/tracks`, options);
+      requests.push(request);
     }
 
-    const result = await Promise.all(responses)
-      .then((results) => {
-        return results.every((result) => {
-          return result.status === 200;
-        });
-      })
-      .catch((error) => {
-        return false;
-      });
-
-    return [true];
+    const responses = await Promise.all(requests);
+    const success = responses.every((response) => response.status === 200);
+    return new ApiResponse(success, null, null);
   }
 
-  static async addTracksToPlaylist(accessToken, id, tracks) {
-    let offset = 0;
-    let limit = 100;
+  static async addTracksToPlaylist(accessToken, playlist) {
+    const { tracks, id } = playlist;
 
-    while (offset < tracks.length) {
-      limit = offset + 100 < tracks.length ? 100 : tracks.length - offset;
+    for (let offset = 0; offset < tracks.length; offset += TRACKS_PER_REQUEST) {
+      const limit = Math.min(TRACKS_PER_REQUEST, tracks.length - offset);
 
       const body = {
         uris: tracks.slice(offset, offset + limit).map((track) => track.uri),
       };
+
       const options = getRequestOptions("POST", accessToken, body);
-      const result = await fetch(baseURL + `playlists/${id}/tracks`, options);
-      offset += 100;
+      await fetch(`${baseURL}playlists/${id}/tracks`, options);
     }
 
-    return [true];
+    return new ApiResponse(true, null, null);
   }
 }
 
