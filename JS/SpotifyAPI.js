@@ -153,12 +153,9 @@ class SpotifyAPI {
       }
 
       const body = await response.json();
-      const playlist = new Playlist(
-        body.name,
-        body.id,
-        body.images[0].url,
-        body.tracks.total
-      );
+
+      const imageUrl = body.images.length > 0 ? body.images[0].url : "";
+      const playlist = new Playlist(body.name, body.id, imageUrl, body.tracks.total);
 
       return new ApiResponse(true, null, playlist);
     } catch (error) {

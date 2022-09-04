@@ -20,6 +20,10 @@ function getColorForPlaylist(name) {
   return `linear-gradient(180deg, hsl(${sum}, 90%, 20%) 20%, hsl(${sum}, 95%, 5%) 70%)`;
 }
 
+function isPlaylistEmpty(playlist) {
+  return playlist.tracks.length === 0;
+}
+
 // General helper functions
 function nullOrUndefined(value) {
   if (value === null || value === undefined) {
@@ -63,6 +67,8 @@ function getEnvOrDie(name) {
 module.exports.increment = increment;
 module.exports.isSelectedPlaylist = isSelectedPlaylist;
 module.exports.getColorForPlaylist = getColorForPlaylist;
+module.exports.isPlaylistEmpty = isPlaylistEmpty;
+
 module.exports.nullOrUndefined = nullOrUndefined;
 module.exports.generateRandomString = generateRandomString;
 module.exports.shufflePlaylist = shufflePlaylist;

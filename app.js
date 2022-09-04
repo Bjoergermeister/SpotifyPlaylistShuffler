@@ -12,6 +12,7 @@ const {
   increment,
   isSelectedPlaylist,
   getColorForPlaylist,
+  isPlaylistEmpty,
   getEnvOrDie,
 } = require("./JS/Helper");
 const { login, logout, authorization, home, playlist, shuffle } = require("./JS/Routes");
@@ -29,6 +30,7 @@ const helpers = {
   increment: increment,
   isSelectedPlaylist: isSelectedPlaylist,
   getColorForPlaylist: getColorForPlaylist,
+  isPlaylistEmpty: isPlaylistEmpty,
 };
 
 const handlebarsConfig = {
