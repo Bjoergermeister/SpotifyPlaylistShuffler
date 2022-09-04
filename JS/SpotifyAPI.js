@@ -1,5 +1,6 @@
 const fetch = require("node-fetch");
 const { User, Authorization, Playlist } = require("./Spotify");
+const { getEnvOrDie } = require("./Helper");
 
 const baseURL = "https://api.spotify.com/v1/";
 const TRACKS_PER_REQUEST = 100;
@@ -13,14 +14,14 @@ class ApiResponse {
 }
 
 class SpotifyAPI {
-  static getAuthorizationURL(client, process, state) {
+  static getAuthorizationURL(client, state) {
     const baseAuthorizationURL = "https://accounts.spotify.com/authorize?";
 
     const params = new URLSearchParams();
     params.append("response_type", "code");
     params.append("client_id", client.id);
-    params.append("scope", process.env.SCOPE);
-    params.append("redirect_uri", process.env.REDIRECT_URI);
+    params.append("scope", getEnvOrDie("SCOPE"));
+    params.append("redirect_uri", getEnvOrDie("REDIRECT_URI"));
     params.append("state", state);
 
     return baseAuthorizationURL + params.toString();
@@ -45,14 +46,15 @@ class SpotifyAPI {
       const url = "https://accounts.spotify.com/api/token";
       const response = await fetch(url, options);
       if (response.status !== 200) {
-        return [false, null];
+        return new ApiResponse(false, null, null);
       }
 
       const body = await response.json();
-      return [true, new Authorization(body.access_token, body.refresh_token)];
+      const authorization = new Authorization(body.access_token, body.refresh_token);
+      return new ApiResponse(true, null, authorization);
     } catch (error) {
       console.log(error);
-      return [false, null];
+      return new ApiResponse(false, null, null);
     }
   }
 
@@ -74,14 +76,16 @@ class SpotifyAPI {
       const url = "https://accounts.spotify.com/api/token";
       const response = await fetch(url, options);
       if (response.status !== 200) {
-        return [false, null];
+        const body = await response.json();
+        return new ApiResponse(false, body, null);
       }
 
       const body = await response.json();
-      return [true, body.access_token];
+      console.log(body);
+      return new ApiResponse(true, null, body.accessToken);
     } catch (error) {
       console.log(error);
-      return [false, null];
+      return new ApiResponse(false, null, null);
     }
   }
 

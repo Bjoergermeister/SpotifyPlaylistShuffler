@@ -32,8 +32,7 @@ function nullOrUndefined(value) {
 
 function generateRandomString(length) {
   var text = "";
-  var possible =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
   for (var i = 0; i < length; i++) {
     text += possible.charAt(Math.floor(Math.random() * possible.length));
@@ -41,8 +40,30 @@ function generateRandomString(length) {
   return text;
 }
 
+function shufflePlaylist(tracks) {
+  var j, x, i;
+  for (i = tracks.length - 1; i > 0; i--) {
+    do {
+      j = Math.floor(Math.random() * (i + 1));
+    } while (i === j);
+    x = tracks[i];
+    tracks[i] = tracks[j];
+    tracks[j] = x;
+  }
+}
+
+function getEnvOrDie(name) {
+  if (!process.env[name]) {
+    console.error(`FATAL: No envvar with name ${name}`);
+  }
+
+  return process.env[name];
+}
+
 module.exports.increment = increment;
 module.exports.isSelectedPlaylist = isSelectedPlaylist;
 module.exports.getColorForPlaylist = getColorForPlaylist;
 module.exports.nullOrUndefined = nullOrUndefined;
 module.exports.generateRandomString = generateRandomString;
+module.exports.shufflePlaylist = shufflePlaylist;
+module.exports.getEnvOrDie = getEnvOrDie;
