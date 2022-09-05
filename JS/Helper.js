@@ -1,10 +1,6 @@
 // Handlebars helper functions
-function increment(value, options) {
+function increment(value) {
   return value + 1;
-}
-
-function isSelectedPlaylist(playlistId, selectedPlaylistId, options) {
-  return playlistId === selectedPlaylistId;
 }
 
 function hashPlaylistName(name, maxValue = 360) {
@@ -20,8 +16,11 @@ function getColorForPlaylist(name) {
   return `linear-gradient(180deg, hsl(${sum}, 90%, 20%) 20%, hsl(${sum}, 95%, 5%) 70%)`;
 }
 
-function isPlaylistEmpty(playlist) {
-  return playlist.tracks.length === 0;
+function condition(expression1, operator, expression2) {
+  switch (operator) {
+    case "==":
+      return expression1 === expression2;
+  }
 }
 
 // General helper functions
@@ -65,9 +64,8 @@ function getEnvOrDie(name) {
 }
 
 module.exports.increment = increment;
-module.exports.isSelectedPlaylist = isSelectedPlaylist;
 module.exports.getColorForPlaylist = getColorForPlaylist;
-module.exports.isPlaylistEmpty = isPlaylistEmpty;
+module.exports.condition = condition;
 
 module.exports.nullOrUndefined = nullOrUndefined;
 module.exports.generateRandomString = generateRandomString;

@@ -62,6 +62,8 @@ async function authorization(request, response) {
 }
 
 async function home(request, response) {
+  response.locals.path = "home";
+
   if (!request.session.authorization) {
     console.log("[SESSION] Invalid session, redirecting to login page");
     response.redirect("/");
@@ -89,6 +91,8 @@ async function home(request, response) {
 }
 
 async function playlist(request, response) {
+  response.locals.path = "playlist";
+
   // Get playlist ID from url, return to home if its missing
   const playlistId = request.params.playlistid;
   if (nullOrUndefined(playlistId)) {

@@ -8,13 +8,7 @@ const cookie_parser = require("cookie-parser");
 const handlebars = require("express-handlebars");
 const path = require("path");
 
-const {
-  increment,
-  isSelectedPlaylist,
-  getColorForPlaylist,
-  isPlaylistEmpty,
-  getEnvOrDie,
-} = require("./JS/Helper");
+const { increment, getColorForPlaylist, getEnvOrDie, condition } = require("./JS/Helper");
 const { login, logout, authorization, home, playlist, shuffle } = require("./JS/Routes");
 
 const oneDay = 1000 * 60 * 60 * 24;
@@ -28,15 +22,15 @@ const sessionSettings = {
 // Setup handlebars
 const helpers = {
   increment: increment,
-  isSelectedPlaylist: isSelectedPlaylist,
   getColorForPlaylist: getColorForPlaylist,
-  isPlaylistEmpty: isPlaylistEmpty,
+  condition: condition,
 };
 
 const handlebarsConfig = {
   helpers,
   defaultLayout: "default",
   layoutsDir: path.join(__dirname, "/Views/Layouts"),
+  partialsDir: path.join(__dirname, "/Views/Partials"),
 };
 
 // Setup express
