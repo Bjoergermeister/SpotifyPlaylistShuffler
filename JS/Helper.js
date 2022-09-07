@@ -3,17 +3,12 @@ function increment(value) {
   return value + 1;
 }
 
-function hashPlaylistName(name, maxValue = 360) {
+function getColorForPlaylist(name, maxValue = 360) {
   let sum = 0;
   for (let i = 0; i < name.length; i++) {
     sum += name.charCodeAt(i);
   }
   return sum % maxValue;
-}
-
-function getColorForPlaylist(name) {
-  const sum = hashPlaylistName(name);
-  return `linear-gradient(180deg, hsl(${sum}, 90%, 20%) 20%, hsl(${sum}, 95%, 5%) 70%)`;
 }
 
 function condition(expression1, operator, expression2) {
@@ -63,6 +58,12 @@ function getEnvOrDie(name) {
   return process.env[name];
 }
 
+function parseBoolean(value) {
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return null;
+}
+
 module.exports.increment = increment;
 module.exports.getColorForPlaylist = getColorForPlaylist;
 module.exports.condition = condition;
@@ -71,3 +72,4 @@ module.exports.nullOrUndefined = nullOrUndefined;
 module.exports.generateRandomString = generateRandomString;
 module.exports.shufflePlaylist = shufflePlaylist;
 module.exports.getEnvOrDie = getEnvOrDie;
+module.exports.parseBoolean = parseBoolean;

@@ -40,6 +40,10 @@ h6 {
   margin: 0px;
 }
 
+label {
+  font-size: 24px;
+}
+
 ul {
   list-style-type: none;
 }
@@ -51,6 +55,16 @@ ul {
 
 .centered {
   margin: auto;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
 }
 
 .box-shadow {
@@ -95,12 +109,16 @@ ul {
 
 button,
 .button {
+  outline: none;
+  border: none;
+  text-transform: uppercase;
   color: black;
   background-color: white;
-  border-radius: 24px;
+  border-radius: 10px;
   margin: 10px;
-  padding: 5px 24px;
+  padding: 0px 24px;
   transition: 0.3s;
+  cursor: pointer;
 }
 
 button:hover,
@@ -108,6 +126,10 @@ button:hover,
   color: white;
   background-color: var(--hover-color);
   transition: 0.3s;
+}
+
+.login .button {
+  margin: 0px;
 }
 
 /*** Header ***/
@@ -236,6 +258,11 @@ nav {
   overflow-y: auto;
   height: 100vh;
   position: relative;
+  background: linear-gradient(
+    180deg,
+    hsl(var(--color), 90%, 20%) 20%,
+    hsl(var(--color), 95%, 5%) 70%
+  );
 }
 
 main {
@@ -336,4 +363,65 @@ button[name="shuffle"]:hover svg path {
   flex-direction: column;
   align-items: center;
   gap: 20px;
+}
+
+/*** Warning modal ***/
+#warningModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75);
+}
+
+#warningModal .content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+
+  display: grid;
+  grid-template-rows: 75px 1fr 75px;
+  grid-template-columns: 1;
+
+  width: 33vw;
+  height: 50vh;
+  background: hsl(var(--color), 90%, 20%);
+}
+
+#warningModal .content > div {
+  width: 100%;
+}
+
+#warningModal p {
+  color: black;
+}
+
+#warningModal h2 {
+  font-size: 50px;
+}
+
+#warningModal .header {
+  text-align: center;
+  line-height: 75px;
+  color: white;
+}
+
+#warningModal :is(.body, .controls) {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+#warningModal .body {
+  padding: 25px 35px;
+}
+
+#warningModal .body p {
+  color: white;
+  line-height: 25px;
+  text-align: justify;
+}
+
+#warningModal .controls {
+  justify-content: center;
 }

@@ -6,6 +6,7 @@ const {
   shufflePlaylist,
   nullOrUndefined,
   getEnvOrDie,
+  parseBoolean,
 } = require("./Helper");
 
 //Authorization variables
@@ -126,7 +127,10 @@ async function playlist(request, response) {
     return;
   }
 
-  const context = { user, playlist, playlists, playlistId };
+  // build context
+  const hideWarning = parseBoolean(request.cookies["hide_warning"]) || false;
+  const context = { user, playlist, playlists, playlistId, hideWarning };
+
   response.render("playlist", context);
 }
 
@@ -135,6 +139,12 @@ async function shuffle(request, response) {
   if (!request.session.authorization) {
     request.redirect("/");
     return;
+  }
+
+  // Check for warning stuff
+  const hideWarning = parseBoolean(request.query["hide_warning"]) || false;
+  if (hideWarning) {
+    response.cookie("hide_warning", true);
   }
 
   const playlist = request.session.playlist;
