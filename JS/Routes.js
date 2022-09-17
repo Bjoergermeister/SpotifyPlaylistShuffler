@@ -162,7 +162,9 @@ async function shuffle(request, response) {
   await SpotifyAPI.clearPlaylist(accessToken, playlist);
   await SpotifyAPI.addTracksToPlaylist(accessToken, playlist);
 
-  response.json(playlist.tracks);
+  const newImageUrl = await SpotifyAPI.getPlaylistImage(accessToken, playlist);
+
+  response.json({ tracks: playlist.tracks, url: newImageUrl });
   return;
 }
 

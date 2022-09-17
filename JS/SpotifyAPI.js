@@ -164,6 +164,19 @@ class SpotifyAPI {
     }
   }
 
+  static async getPlaylistImage(accessToken, playlist) {
+    const options = getRequestOptions("GET", accessToken);
+    const url = `${baseURL}playlists/${playlist.id}?fields=images`;
+    const response = await fetch(url, options);
+    const data = await response.json();
+
+    if (response.status !== 200) {
+      console.log(data);
+      return "";
+    }
+    return data.images[0].url;
+  }
+
   static async getPlaylistTracks(accessToken, playlist) {
     const options = getRequestOptions("GET", accessToken);
 
