@@ -425,3 +425,45 @@ button[name="shuffle"]:hover svg path {
 #warningModal .controls {
   justify-content: center;
 }
+
+#shuffleAnimationContainer {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  display: none;
+  width: 300px;
+  height: 300px;
+
+  padding: 20px;
+  border-radius: 15px;
+
+  background: rgba(0, 0, 0, 0.75);
+}
+
+#loadingCircle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  display: block;
+  width: 33%;
+  height: 33%;
+  border-width: 10px;
+  border-style: solid;
+  border-radius: 50%;
+  border-color: white white transparent white;
+  margin: auto;
+  animation: loading-circle-rotation 3s infinite linear;
+}
+
+@keyframes loading-circle-rotation {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}

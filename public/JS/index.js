@@ -1,6 +1,7 @@
 let playlistId = undefined;
 let warningModal = undefined;
-let hideWarning = false;
+let shuffleAnimationContainer = undefined;
+let warningAccepted = false;
 
 window.onload = () => {
   const url = window.location.href;
@@ -10,24 +11,33 @@ window.onload = () => {
   const lastUrlPartsStart = url.lastIndexOf("/") + 1; // + 1 because we don't want the '/'
   playlistId = url.substring(lastUrlPartsStart, url.length);
 
+  shuffleAnimationContainer = document.getElementById("shuffleAnimationContainer");
   warningModal = document.getElementById("warningModal");
+  warningAccepted = warningModal === undefined;
 };
 
-function shuffle() {
-  // Check if warning modal should be displayed
-  if (warningModal === null || hideWarning) {
-    Api.shuffle();
+async function shuffle() {
+  if (warningAccepted === false) {
+    warningModal.style.display = "block";
     return;
   }
 
-  warningModal.style.display = "block";
+  shuffleAnimationContainer.style.display = "block";
+  await Api.shuffle();
+  shuffleAnimationContainer.style.display = "none";
 }
 
-function hideWarningModal() {
-  warningModal.style.display = "none";
-}
-
+/*** Event Handlers ***/
 function onCheckboxChanged(checkbox) {
-  console.log(checkbox);
   hideWarning = checkbox.checked;
+}
+
+function onWarningAccepted() {
+  warningAccepted = true;
+  warningModal.style.display = "none";
+  shuffle();
+}
+
+function onModalCancelled() {
+  warningModal.style.display = "none";
 }

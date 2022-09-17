@@ -9,6 +9,9 @@ const {
   parseBoolean,
 } = require("./Helper");
 
+// Constants
+const WARNING_ACCEPTED_COOKIE = "warning_accepted";
+
 //Authorization variables
 const client = new Client(getEnvOrDie("CLIENT_ID"), getEnvOrDie("CLIENT_SECRET"));
 
@@ -128,8 +131,8 @@ async function playlist(request, response) {
   }
 
   // build context
-  const hideWarning = parseBoolean(request.cookies["hide_warning"]) || false;
-  const context = { user, playlist, playlists, playlistId, hideWarning };
+  const warningAccepted = parseBoolean(request.cookies[WARNING_ACCEPTED_COOKIE]) || false;
+  const context = { user, playlist, playlists, playlistId, warningAccepted };
 
   response.render("playlist", context);
 }
@@ -142,9 +145,9 @@ async function shuffle(request, response) {
   }
 
   // Check for warning stuff
-  const hideWarning = parseBoolean(request.query["hide_warning"]) || false;
-  if (hideWarning) {
-    response.cookie("hide_warning", true);
+  const warningAccepted = parseBoolean(request.query[WARNING_ACCEPTED_COOKIE]) || false;
+  if (warningAccepted) {
+    response.cookie(WARNING_ACCEPTED_COOKIE, true);
   }
 
   const playlist = request.session.playlist;

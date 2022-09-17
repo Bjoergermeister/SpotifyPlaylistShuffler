@@ -13,7 +13,7 @@
                 <p>Diese Playlist enthält keine Lieder</p>
                 <img src="/img/eye-small.png" alt=""/>
             </div>
-        {{else}}
+        {{else}}            
             <button name="shuffle"
                 onclick="shuffle()">
                 <svg
@@ -44,7 +44,12 @@
     </main>
 </div>
 
-{{#unless hideWarning }}
+<div id="shuffleAnimationContainer">
+    <h2 class="text-centered">Mische Playlist...</h2>
+    <div id="loadingCircle"></div>
+</div>
+
+{{#unless warningAccepted }}
     <div id="warningModal" style="display: none">
         <div class="content" style="--color: {{ playlist.color }}">
             <div class="header">
@@ -63,8 +68,8 @@
                 </div>
             </div>
             <div class="controls flex-row"> 
-                <button onclick="Api.shuffle()">Ja, mischen</button>
-                <button onclick="hideWarningModal()">Nein, abbrechen</button>
+                <button onclick="onWarningAccepted()">Ja, mischen</button>
+                <button onclick="onModalCancelled()">Nein, abbrechen</button>
             </div>
         </div>
     </div>
