@@ -185,7 +185,7 @@ class SpotifyAPI {
     for (let offset = 0; offset < playlist.totalTracks; offset += TRACKS_PER_REQUEST) {
       const limit = Math.min(TRACKS_PER_REQUEST, playlist.totalTracks - offset);
 
-      const fields = "fields=items(track(name,id,uri,album,images))";
+      const fields = "items(track(name,id,uri,album(name,images)))";
       const url = `${baseURL}playlists/${playlist.id}/tracks?limit=${limit}&offset=${offset}&fields=${fields}`;
       requests.push(fetch(url, options));
     }

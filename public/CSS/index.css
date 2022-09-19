@@ -1,0 +1,70 @@
+body {
+  display: initial;
+}
+
+#covers {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap-reverse;
+  width: 100%;
+  justify-content: space-evenly;
+  column-gap: 10px;
+  row-gap: 10px;
+  padding: 10px;
+  position: fixed;
+  bottom: 0px;
+  left: 0px;
+  z-index: -1;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  padding: 175px;
+
+  background: linear-gradient(
+    rgba(34, 34, 34, 1) 55%,
+    rgba(34, 34, 34, 0.9) 75%,
+    rgba(34, 34, 34, 0.8) 83%,
+    rgba(34, 34, 34, 0.7) 86%,
+    rgba(34, 34, 34, 0.6) 89%,
+    rgba(34, 34, 34, 0.5) 93%,
+    rgba(34, 34, 34, 0.4) 95%,
+    rgba(34, 34, 34, 0.3) 97%,
+    rgba(34, 34, 34, 0.2) 98%,
+    rgba(34, 34, 34, 0.1) 99%,
+    transparent 100%
+  );
+}
+
+/* Title */
+.title {
+  width: 200px;
+  margin: 20px 0px 20px 0px;
+}
+
+.title h1 {
+  margin-left: 10px;
+  line-height: 40px;
+}
+
+.title h1:nth-child(1) {
+  letter-spacing: 0.17rem;
+}
+
+.title h1:nth-child(2) {
+  letter-spacing: 0.14rem;
+}
+
+.title span {
+  color: #51ff4d;
+}
+
+.login {
+  margin-top: 50px;
+  width: 250px;
+}

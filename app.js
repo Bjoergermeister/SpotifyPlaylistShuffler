@@ -46,7 +46,7 @@ app
   .use(bodyparser.json());
 
 // Routes
-app.get("/", (_, response) => response.render("index"));
+app.get("/", (_, response) => response.render("index", { css: ["index.css"] }));
 app.get("/login", login);
 app.get("/logout", logout);
 app.get("/authorization", authorization);

@@ -75,38 +75,6 @@ ul {
   cursor: pointer;
 }
 
-/* Title */
-.title {
-  width: 200px;
-  display: block;
-  margin: auto;
-
-  position: absolute;
-  top: 45%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.title h1 {
-  margin-left: 10px;
-  line-height: 40px;
-}
-
-.title span {
-  color: #51ff4d;
-}
-
-.login {
-  width: 250px;
-  display: block;
-  margin: 100px auto;
-
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
 button,
 .button {
   outline: none;

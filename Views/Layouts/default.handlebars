@@ -5,6 +5,9 @@
     <meta charset="UTF-8" />
     <title>Spotify Playlist Shuffler</title>
     <link rel="stylesheet" href="/CSS/style.css">
+    {{#each css}}
+        <link rel="stylesheet" href="/CSS/{{this}}">
+    {{/each}}
     <script src="/JS/Api.js"></script>
     <script src="/JS/index.js"></script>
 </head>
