@@ -10,19 +10,22 @@ const {
 } = require("./Helper");
 
 // Constants
+const CLIENT_ID = getEnvOrDie("CLIENT_ID");
+const CLIENT_SECRET = getEnvOrDie("CLIENT_SECRET");
+const STATE_KEY = getEnvOrDie("STATE_KEY");
+const REDIRECT_URI = getEnvOrDie("REDIRECT_URI");
 const WARNING_ACCEPTED_COOKIE = "warning_accepted";
 
 //Authorization variables
-const client = new Client(getEnvOrDie("CLIENT_ID"), getEnvOrDie("CLIENT_SECRET"));
-
-const stateKey = getEnvOrDie("STATE_KEY");
+const client = new Client(CLIENT_ID, CLIENT_SECRET);
 
 function login(request, response) {
   //Preparing authorization
   const state = generateRandomString(16);
-  response.cookie(stateKey, state);
+  response.cookie(STATE_KEY, state);
 
-  response.redirect(SpotifyAPI.getAuthorizationURL(client, state));
+  const authorizationUrl = SpotifyAPI.getAuthorizationURL(client, state);
+  response.redirect(authorizationUrl);
 }
 
 function logout(request, response) {
@@ -33,19 +36,18 @@ function logout(request, response) {
 async function authorization(request, response) {
   var code = request.query.code || null;
   var state = request.query.state || null;
-  var storedState = request.cookies ? request.cookies[stateKey] : null;
+  var storedState = request.cookies ? request.cookies[STATE_KEY] : null;
 
   if (state === null || storedState !== state) {
     response.redirect("error");
     return;
   }
 
-  response.clearCookie(stateKey);
+  response.clearCookie(STATE_KEY);
 
-  const redirectURI = getEnvOrDie("REDIRECT_URI");
-  const tokenResponse = await SpotifyAPI.receiveToken(client, code, redirectURI);
+  const tokenResponse = await SpotifyAPI.receiveToken(client, code, REDIRECT_URI);
   if (tokenResponse.success === false) {
-    console.log("[SpotifyAPI] Receiving token failed");
+    console.log(`[SpotifyAPI] Receiving token failed: ${tokenResponse.error.message}`);
     response.redirect("/");
     return;
   }
@@ -146,6 +148,7 @@ async function shuffle(request, response) {
 
   // Check for warning stuff
   const warningAccepted = parseBoolean(request.query[WARNING_ACCEPTED_COOKIE]) || false;
+  console.log(warningAccepted);
   if (warningAccepted) {
     response.cookie(WARNING_ACCEPTED_COOKIE, true);
   }

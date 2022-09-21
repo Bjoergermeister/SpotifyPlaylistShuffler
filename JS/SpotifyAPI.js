@@ -2,7 +2,8 @@ const fetch = require("node-fetch");
 const { User, Authorization, Playlist } = require("./Spotify");
 const { getEnvOrDie } = require("./Helper");
 
-const baseURL = "https://api.spotify.com/v1/";
+const BASE_URL = "https://api.spotify.com/v1";
+
 const TRACKS_PER_REQUEST = 100;
 
 class ApiResponse {
@@ -33,28 +34,22 @@ class SpotifyAPI {
     params.append("code", code);
     params.append("redirect_uri", redirectURI);
 
-    const options = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: client.getBasicAuthorizationString(),
-      },
-      body: params,
-    };
+    const authorizationString = client.getAuthorizationString();
+    const contentType = "application/x-www-form-urlencoded";
+    const options = getRequestOptions("POST", authorizationString, contentType, params);
 
     try {
-      const url = "https://accounts.spotify.com/api/token";
-      const response = await fetch(url, options);
+      const response = await fetch("https://accounts.spotify.com/api/token", options);
       if (response.status !== 200) {
-        return new ApiResponse(false, null, null);
+        return await getErrorResponse(response);
       }
 
       const body = await response.json();
       const authorization = new Authorization(body.access_token, body.refresh_token);
-      return new ApiResponse(true, null, authorization);
+      return getSuccessResponse(authorization);
     } catch (error) {
       console.log(error);
-      return new ApiResponse(false, null, null);
+      return getUnknownErrorResponse(error);
     }
   }
 
@@ -67,7 +62,7 @@ class SpotifyAPI {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: client.getBasicAuthorizationString(),
+        Authorization: client.getAuthorizationString(),
       },
       body: params,
     };
@@ -76,51 +71,44 @@ class SpotifyAPI {
       const url = "https://accounts.spotify.com/api/token";
       const response = await fetch(url, options);
       if (response.status !== 200) {
-        const body = await response.json();
-        return new ApiResponse(false, body, null);
+        return await getErrorResponse(response);
       }
 
       const body = await response.json();
-      console.log(body);
-      return new ApiResponse(true, null, body.accessToken);
+      return getSuccessResponse(body.accessToken);
     } catch (error) {
       console.log(error);
-      return new ApiResponse(false, null, null);
+      return getUnknownErrorResponse(error);
     }
   }
 
   static async getUserData(accessToken) {
     const options = getRequestOptions("GET", accessToken);
 
-    try {
-      const response = await fetch(baseURL + "me", options);
-      if (response.status !== 200) {
-        return new ApiResponse(false, null, null);
-      }
-
-      const body = await response.json();
-      const user = new User(body.display_name, body.country, body.images[0].url, body.id);
-      return new ApiResponse(true, null, user);
-    } catch (error) {
-      console.log(error);
-      return new ApiResponse(false, null, null);
+    const response = await fetch(`${BASE_URL}/me`, options);
+    if (response.status !== 200) {
+      return await getErrorResponse(response);
     }
+
+    const body = await response.json();
+    const user = new User(body.display_name, body.country, body.images[0].url, body.id);
+    return getSuccessResponse(user);
   }
 
   static async getUserItems(accessToken) {
     const options = getRequestOptions("GET", accessToken);
 
     try {
-      const response = await fetch(`${baseURL}me/top/artists`, options);
+      const response = await fetch(`${BASE_URL}/me/top/artists`, options);
       if (response.status !== 200) {
-        return new ApiResponse(false, null, null);
+        return await getErrorResponse(response);
       }
 
       const body = await response.json();
-      return new ApiResponse(true, null, body);
+      return getSuccessResponse(body);
     } catch (error) {
       console.log(error);
-      return new ApiResponse(false, null, null);
+      return getUnknownErrorResponse(error);
     }
   }
 
@@ -128,17 +116,17 @@ class SpotifyAPI {
     const options = getRequestOptions("GET", accessToken);
 
     try {
-      const url = `${baseURL}users/${id}/playlists?fields=href,items(name, images, id, tracks.total)`;
+      const url = `${BASE_URL}/users/${id}/playlists?fields=href,items(name, images, id, tracks.total)`;
       const response = await fetch(url, options);
       if (response.status !== 200) {
-        return new ApiResponse(false, null, null);
+        return await getErrorResponse(response);
       }
 
       const body = await response.json();
-      return new ApiResponse(true, null, body.items);
+      return getSuccessResponse(body.items);
     } catch (error) {
       console.log(error);
-      return new ApiResponse(false, null, null);
+      return getUnknownErrorResponse(error);
     }
   }
 
@@ -146,10 +134,10 @@ class SpotifyAPI {
     const options = getRequestOptions("GET", accessToken);
 
     try {
-      const url = `${baseURL}playlists/${id}?fields=id,images,name,tracks.total`;
+      const url = `${BASE_URL}/playlists/${id}?fields=id,images,name,tracks.total`;
       const response = await fetch(url, options);
       if (response.status !== 200) {
-        return new ApiResponse(false, null, null);
+        return await getErrorResponse(response);
       }
 
       const body = await response.json();
@@ -157,23 +145,23 @@ class SpotifyAPI {
       const imageUrl = body.images.length > 0 ? body.images[0].url : "";
       const playlist = new Playlist(body.name, body.id, imageUrl, body.tracks.total);
 
-      return new ApiResponse(true, null, playlist);
+      return getSuccessResponse(playlist);
     } catch (error) {
       console.log(error);
-      return new ApiResponse(false, null, null);
+      return getUnknownErrorResponse(error);
     }
   }
 
   static async getPlaylistImage(accessToken, playlist) {
     const options = getRequestOptions("GET", accessToken);
-    const url = `${baseURL}playlists/${playlist.id}?fields=images`;
+    const url = `${BASE_URL}/playlists/${playlist.id}?fields=images`;
     const response = await fetch(url, options);
-    const data = await response.json();
 
     if (response.status !== 200) {
-      console.log(data);
-      return "";
+      return await getErrorResponse(response);
     }
+
+    const data = await response.json();
     return data.images[0].url;
   }
 
@@ -186,7 +174,7 @@ class SpotifyAPI {
       const limit = Math.min(TRACKS_PER_REQUEST, playlist.totalTracks - offset);
 
       const fields = "items(track(name,id,uri,album(name,images)))";
-      const url = `${baseURL}playlists/${playlist.id}/tracks?limit=${limit}&offset=${offset}&fields=${fields}`;
+      const url = `${BASE_URL}/playlists/${playlist.id}/tracks?limit=${limit}&offset=${offset}&fields=${fields}`;
       requests.push(fetch(url, options));
     }
 
@@ -202,7 +190,7 @@ class SpotifyAPI {
       playlist.addTracks(newTracks);
     }
 
-    return new ApiResponse(true, null, null);
+    return getSuccessResponse(null);
   }
 
   static async clearPlaylist(accessToken, playlist) {
@@ -217,13 +205,13 @@ class SpotifyAPI {
       };
 
       const options = getRequestOptions("DELETE", accessToken, body);
-      const request = fetch(`${baseURL}playlists/${id}/tracks`, options);
+      const request = fetch(`${BASE_URL}/playlists/${id}/tracks`, options);
       requests.push(request);
     }
 
     const responses = await Promise.all(requests);
     const success = responses.every((response) => response.status === 200);
-    return new ApiResponse(success, null, null);
+    return;
   }
 
   static async addTracksToPlaylist(accessToken, playlist) {
@@ -237,22 +225,48 @@ class SpotifyAPI {
       };
 
       const options = getRequestOptions("POST", accessToken, body);
-      await fetch(`${baseURL}playlists/${id}/tracks`, options);
+      await fetch(`${BASE_URL}/playlists/${id}/tracks`, options);
     }
 
-    return new ApiResponse(true, null, null);
+    return getSuccessResponse(null);
   }
 }
 
-function getRequestOptions(method, accessToken, body) {
+function getSuccessResponse(result) {
+  return new ApiResponse(true, null, result);
+}
+
+async function getErrorResponse(response) {
+  const data = await response.json();
+  console.log(data, response.status);
+
+  let errorMessage;
+  if ([401, 403, 429].includes(response.status)) {
+    errorMessage = { code: response.status, messsage: data.error.message };
+  } else if (response.status === 400) {
+    errorMessage = data.error_description;
+  }
+
+  return new ApiResponse(false, { code: response.status, message: errorMessage }, null);
+}
+
+function getUnknownErrorResponse(message) {
+  return new ApiResponse(false, { code: 600, message }, null);
+}
+
+function getRequestOptions(method, accessToken, contentType, body) {
+  const requestBody = body instanceof URLSearchParams ? body : JSON.stringify(body);
+
   return {
     method: method,
     headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + accessToken,
+      "Content-Type": contentType || "application/json",
+      Authorization: accessToken.startsWith("Basic")
+        ? accessToken
+        : `Bearer ${accessToken}`,
     },
     json: true,
-    body: JSON.stringify(body),
+    body: requestBody,
   };
 }
 

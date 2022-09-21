@@ -52,7 +52,8 @@ function shufflePlaylist(tracks) {
 
 function getEnvOrDie(name) {
   if (!process.env[name]) {
-    console.error(`FATAL: No envvar with name ${name}`);
+    console.error("\x1b[31m%s\x1b[0m", `FATAL: No envvar with name ${name}`);
+    process.exit(1);
   }
 
   return process.env[name];

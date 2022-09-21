@@ -6,8 +6,9 @@ class Client {
     this.secret = secret;
   }
 
-  getBasicAuthorizationString() {
-    return "Basic " + Buffer.from(this.id + ":" + this.secret).toString("base64");
+  getAuthorizationString() {
+    const encodedClient = Buffer.from(`${this.id}:${this.secret}`).toString("base64");
+    return `Basic ${encodedClient}`;
   }
 }
 
