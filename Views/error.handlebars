@@ -1,1 +1,13 @@
-<p>Es ist ein Fehler aufgetreten</p>
+<div id="errorContainer">
+    <h1 class="text-centered">{{ status }}</h1>
+
+    <p class="text-centered">Entschuldigung. Es ist ein Fehler aufgetreten:</p>
+    <p class="text-centered">Fehlermeldung: {{ message }}</p>
+
+    {{redirect}}
+    {{#if redirect }}
+        <a class="button centered">Alles klar</a>
+    {{else}}
+        <a class="button centered" href="javascript:window.location.reload(true)">Erneut versuchen</a>
+    {{/if}}
+</div>

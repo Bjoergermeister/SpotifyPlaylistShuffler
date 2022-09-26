@@ -435,3 +435,22 @@ button[name="shuffle"]:hover svg path {
     transform: translate(-50%, -50%) rotate(360deg);
   }
 }
+
+#errorContainer {
+  grid-column-start: 1;
+  grid-column-end: 3;
+  width: 30%;
+  display: block;
+  margin: auto;
+}
+
+#errorContainer h1 {
+  font-size: 100px;
+}
+
+#errorContainer a.button {
+  display: block;
+  margin: 100px auto 0px auto;
+  max-width: 300px;
+  text-align: center;
+}

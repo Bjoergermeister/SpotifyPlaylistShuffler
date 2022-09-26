@@ -33,7 +33,7 @@ function logout(request, response) {
   response.redirect("/");
 }
 
-async function authorization(request, response) {
+async function authorization(request, response, next) {
   var code = request.query.code || null;
   var state = request.query.state || null;
   var storedState = request.cookies ? request.cookies[STATE_KEY] : null;
@@ -47,8 +47,7 @@ async function authorization(request, response) {
 
   const tokenResponse = await SpotifyAPI.receiveToken(client, code, REDIRECT_URI);
   if (tokenResponse.success === false) {
-    console.log(`[SpotifyAPI] Receiving token failed: ${tokenResponse.error.message}`);
-    response.redirect("/");
+    next(tokenResponse.error);
     return;
   }
 
@@ -67,7 +66,7 @@ async function authorization(request, response) {
   response.redirect("/home");
 }
 
-async function home(request, response) {
+async function home(request, response, next) {
   response.locals.path = "home";
 
   if (!request.session.authorization) {
@@ -84,8 +83,7 @@ async function home(request, response) {
   //Get user's playlists
   const playlistsResponse = await SpotifyAPI.getPlaylists(accessToken, user.id);
   if (playlistsResponse.success === false) {
-    console.log("[SpotifyAPI] Getting playlist failed");
-    response.redirect("/");
+    next(playlistsResponse.error);
     return;
   }
 
@@ -96,7 +94,7 @@ async function home(request, response) {
   response.render("home", { user, playlists });
 }
 
-async function playlist(request, response) {
+async function playlist(request, response, next) {
   response.locals.path = "playlist";
 
   // Get playlist ID from url, return to home if its missing
@@ -139,7 +137,7 @@ async function playlist(request, response) {
   response.render("playlist", context);
 }
 
-async function shuffle(request, response) {
+async function shuffle(request, response, next) {
   // Check session
   if (!request.session.authorization) {
     request.redirect("/");
@@ -171,9 +169,16 @@ async function shuffle(request, response) {
   return;
 }
 
+function error(request, response) {
+  const status = request.query.status || 500;
+  const message = request.query.message || "Unknown error";
+  return response.render("error", { status, message, css: ["error.css"] });
+}
+
 module.exports.login = login;
 module.exports.logout = logout;
 module.exports.authorization = authorization;
 module.exports.home = home;
 module.exports.playlist = playlist;
 module.exports.shuffle = shuffle;
+module.exports.error = error;

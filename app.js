@@ -9,7 +9,17 @@ const handlebars = require("express-handlebars");
 const path = require("path");
 
 const { increment, getColorForPlaylist, getEnvOrDie, condition } = require("./JS/Helper");
-const { login, logout, authorization, home, playlist, shuffle } = require("./JS/Routes");
+const {
+  login,
+  logout,
+  authorization,
+  home,
+  playlist,
+  shuffle,
+  error,
+} = require("./JS/Routes");
+
+const { ApiError } = require("./JS/ApiError");
 
 const oneDay = 1000 * 60 * 60 * 24;
 const sessionSettings = {
@@ -53,7 +63,18 @@ app.get("/authorization", authorization);
 app.get("/home", home);
 app.get("/playlist/:playlistid", playlist);
 app.get("/shuffle/:playlistid", shuffle);
-app.get("/error", (_, response) => response.render("error"));
+app.get("/error", error);
+
+// Error handling middleware
+app.use((error, request, response, next) => {
+  console.log(error);
+  const redirect = error.redirect !== undefined ? error.redirect : true;
+  if (redirect) {
+    response.redirect(`/error?status=${error.status}&message=${error.publicMessage}`);
+  } else {
+    response.render("error", { message: error.publicMessage, status: error.status });
+  }
+});
 
 const port = getEnvOrDie("PORT");
 app.listen(port, () => {
