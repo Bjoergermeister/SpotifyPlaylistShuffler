@@ -246,10 +246,10 @@ class SpotifyAPI {
 
         const options = getRequestOptions("POST", accessToken, body);
         const response = await fetch(`${BASE_URL}/playlists/${id}/tracks`, options);
-        if (response.status !== 200) {
-          const body = await response.json();
+        if (response.status !== 201) {
+          const result = await response.json();
           const message = "Adding tracks to playlist failed";
-          throw new ApiError(response.status, body, message, false);
+          throw new ApiError(response.status, result, message, false);
         }
       }
 

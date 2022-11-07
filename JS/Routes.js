@@ -1,5 +1,6 @@
 const { SpotifyAPI } = require("./SpotifyAPI");
 const { Client } = require("./Spotify");
+const redis = require("redis");
 
 const {
   generateRandomString,
@@ -8,6 +9,22 @@ const {
   getEnvOrDie,
   parseBoolean,
 } = require("./Helper");
+
+// Setup redis
+let redisClient = null;
+
+(async () => {
+  const redisConfig = {
+    socket: {
+      host: getEnvOrDie("REDIS_HOST"),
+      port: parseInt(getEnvOrDie("REDIS_PORT")),
+      password: getEnvOrDie("REDIS_PASSWORD"),
+    },
+  };
+  redisClient = redis.createClient(redisConfig);
+  redisClient.on("error", (error) => console.error(`Error: ${error}`));
+  await redisClient.connect();
+})();
 
 // Constants
 const CLIENT_ID = getEnvOrDie("CLIENT_ID");
@@ -113,22 +130,32 @@ async function playlist(request, response, next) {
   const { authorization, user, playlists } = request.session;
   const accessToken = authorization.accessToken;
 
-  // Get playlist
-  const playlistResponse = await SpotifyAPI.getPlaylist(accessToken, playlistId);
-  if (playlistResponse.success === false) {
-    response.redirect("/");
-    return;
+  let playlist = await redisClient.get(playlistId);
+  if (!playlist) {
+    // If playlist is not cached, get from API
+    const playlistResponse = await SpotifyAPI.getPlaylist(accessToken, playlistId);
+    if (playlistResponse.success === false) {
+      response.redirect("/");
+      return;
+    }
+
+    playlist = playlistResponse.result;
+
+    // Get tracks in playlist
+    const tracksResponse = await SpotifyAPI.getPlaylistTracks(accessToken, playlist);
+    if (tracksResponse.success == false) {
+      response.redirect("/");
+      return;
+    }
+
+    // Save playlist in cache
+    await redisClient.set(playlistId, JSON.stringify(playlist));
+  } else {
+    playlist = JSON.parse(playlist);
   }
 
-  const playlist = playlistResponse.result;
+  // Save playlist in session
   request.session.playlist = playlist;
-
-  // Get tracks in playlist
-  const tracksResponse = await SpotifyAPI.getPlaylistTracks(accessToken, playlist);
-  if (tracksResponse.success == false) {
-    response.redirect("/");
-    return;
-  }
 
   // build context
   const warningAccepted = parseBoolean(request.cookies[WARNING_ACCEPTED_COOKIE]) || false;
@@ -146,7 +173,6 @@ async function shuffle(request, response, next) {
 
   // Check for warning stuff
   const warningAccepted = parseBoolean(request.query[WARNING_ACCEPTED_COOKIE]) || false;
-  console.log(warningAccepted);
   if (warningAccepted) {
     response.cookie(WARNING_ACCEPTED_COOKIE, true);
   }
@@ -163,9 +189,12 @@ async function shuffle(request, response, next) {
   await SpotifyAPI.clearPlaylist(accessToken, playlist);
   await SpotifyAPI.addTracksToPlaylist(accessToken, playlist);
 
-  const newImageUrl = await SpotifyAPI.getPlaylistImage(accessToken, playlist);
+  playlist.image = await SpotifyAPI.getPlaylistImage(accessToken, playlist);
 
-  response.json({ tracks: playlist.tracks, url: newImageUrl });
+  // Update cache
+  await redisClient.set(playlist.id, JSON.stringify(playlist));
+
+  response.json({ tracks: playlist.tracks, url: playlist.image });
   return;
 }
 
