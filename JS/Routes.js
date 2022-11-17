@@ -31,7 +31,7 @@ const CLIENT_ID = getEnvOrDie("CLIENT_ID");
 const CLIENT_SECRET = getEnvOrDie("CLIENT_SECRET");
 const STATE_KEY = getEnvOrDie("STATE_KEY");
 const REDIRECT_URI = getEnvOrDie("REDIRECT_URI");
-const WARNING_ACCEPTED_COOKIE = "warning_accepted";
+const HIDE_WARNING_COOKIE = "hide_warning";
 
 //Authorization variables
 const client = new Client(CLIENT_ID, CLIENT_SECRET);
@@ -158,8 +158,8 @@ async function playlist(request, response, next) {
   request.session.playlist = playlist;
 
   // build context
-  const warningAccepted = parseBoolean(request.cookies[WARNING_ACCEPTED_COOKIE]) || false;
-  const context = { user, playlist, playlists, playlistId, warningAccepted };
+  const hideWarning = parseBoolean(request.cookies[HIDE_WARNING_COOKIE]) || false;
+  const context = { user, playlist, playlists, playlistId, hideWarning };
 
   response.render("playlist", context);
 }
@@ -167,14 +167,14 @@ async function playlist(request, response, next) {
 async function shuffle(request, response, next) {
   // Check session
   if (!request.session.authorization) {
-    request.redirect("/");
+    response.redirect("/");
     return;
   }
 
-  // Check for warning stuff
-  const warningAccepted = parseBoolean(request.query[WARNING_ACCEPTED_COOKIE]) || false;
-  if (warningAccepted) {
-    response.cookie(WARNING_ACCEPTED_COOKIE, true);
+  // Check if the user disabled the warning and set a cookie accordingly
+  const hideWarning = parseBoolean(request.query[HIDE_WARNING_COOKIE]) || false;
+  if (hideWarning) {
+    response.cookie(HIDE_WARNING_COOKIE, true);
   }
 
   const playlist = request.session.playlist;

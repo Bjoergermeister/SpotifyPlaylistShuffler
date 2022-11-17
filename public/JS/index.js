@@ -2,6 +2,7 @@ let playlistId = undefined;
 let warningModal = undefined;
 let shuffleAnimationContainer = undefined;
 let warningAccepted = false;
+let hideWarning = false;
 
 window.onload = () => {
   const url = window.location.href;
@@ -13,7 +14,7 @@ window.onload = () => {
 
   shuffleAnimationContainer = document.getElementById("shuffleAnimationContainer");
   warningModal = document.getElementById("warningModal");
-  warningAccepted = warningModal === undefined;
+  warningAccepted = warningModal === null;
 };
 
 async function shuffle() {

@@ -2,7 +2,7 @@ const baseURL = "http://localhost:8888/";
 
 class Api {
   static async shuffle() {
-    const url = baseURL + `shuffle/${playlistId}?warning_accepted=${!warningAccepted}`;
+    const url = baseURL + `shuffle/${playlistId}?hide_warning=${hideWarning}`;
     const options = getRequestOptions("GET", null);
 
     const response = await fetch(url, options);
