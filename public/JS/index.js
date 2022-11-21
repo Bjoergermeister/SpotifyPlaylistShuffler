@@ -3,6 +3,7 @@ let warningModal = undefined;
 let shuffleAnimationContainer = undefined;
 let warningAccepted = false;
 let hideWarning = false;
+let loadedImageCount = 0;
 
 window.onload = () => {
   const url = window.location.href;
@@ -41,4 +42,11 @@ function onWarningAccepted() {
 
 function onModalCancelled() {
   warningModal.style.display = "none";
+}
+
+function imageLoaded() {
+  loadedImageCount++;
+  if (loadedImageCount !== 150) return;
+
+  imageContainer.style.display = "block";
 }
