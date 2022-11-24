@@ -4,7 +4,7 @@
     <header>
         <img src="{{ playlist.image }}" class="box-shadow playlist-image" alt="Titelbild"/>
         <h1>{{ playlist.name }}</h1>
-        <p>{{ playlist.tracks.length }} Songs</p>               
+        <p>{{ playlist.tracks.length }} Songs &nbsp;&#x25cf&nbsp; {{ playlist.totalDuration }}</p>               
     </header>
 
     <main>
@@ -28,14 +28,18 @@
                         <td style="width: 50px;">#</td>
                         <td style="width: 100px;"></td>
                         <td style="width: 500px;">TITEL</td>
+                        <td style="width: 500px;">ALBUM</td>
+                        <td style="width: 100px;">LÄNGE</td>
                     </tr>
                 </thead>
                 <tbody>
                     {{#each playlist.tracks }}
                     <tr>
                         <td>{{increment @index}}.</td>
-                        <td><img src="{{this.album.images.2.url}}" alt="Album Cover"></td>
+                        <td><img src="{{ this.album.images.2.url }}" alt="Album Cover"></td>
                         <td>{{ this.name }}</td>
+                        <td>{{ this.album.name }}</td>
+                        <td>{{ this.duration_ms }}</td>
                     </tr>
                     {{/each }}
                 </tbody>

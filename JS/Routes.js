@@ -144,7 +144,7 @@ async function playlist(request, response, next) {
     // Get tracks in playlist
     const tracksResponse = await SpotifyAPI.getPlaylistTracks(accessToken, playlist);
     if (tracksResponse.success == false) {
-      response.redirect("/");
+      next(tracksResponse.error);
       return;
     }
 

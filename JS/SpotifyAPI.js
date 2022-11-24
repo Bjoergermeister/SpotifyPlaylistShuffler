@@ -171,7 +171,7 @@ class SpotifyAPI {
       for (let offset = 0; offset < playlist.totalTracks; offset += TRACKS_PER_REQUEST) {
         const limit = Math.min(TRACKS_PER_REQUEST, playlist.totalTracks - offset);
 
-        const fields = "items(track(name,id,uri,album(name,images)))";
+        const fields = "items(track(name,id,uri,duration_ms,album(name,images)))";
         const url = `${BASE_URL}/playlists/${playlist.id}/tracks?limit=${limit}&offset=${offset}&fields=${fields}`;
         requests.push(fetch(url, options));
       }
@@ -187,9 +187,23 @@ class SpotifyAPI {
       }
 
       const bodies = await Promise.all(responses.map((response) => response.json()));
+
+      // Transform responses and calculate combined track length
+      let totalDuration = 0;
       for (const body of bodies) {
-        const newTracks = body.items.map((item) => item.track);
+        const newTracks = body.items.map((item) => {
+          const durationInSeconds = Math.round(parseInt(item.track.duration_ms) / 1000);
+          totalDuration += durationInSeconds;
+          const minutes = Math.floor(durationInSeconds / 60);
+          const seconds = durationInSeconds % 60;
+          item.track.duration_ms = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+          return item.track;
+        });
         playlist.addTracks(newTracks);
+
+        const hours = Math.floor(totalDuration / 3600);
+        const minutes = Math.floor((totalDuration / 60) % 60);
+        playlist.totalDuration = `${hours} Stunden, ${minutes} Minuten`;
       }
 
       return getSuccessResponse(null);
