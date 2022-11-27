@@ -49,12 +49,13 @@ class User {
 }
 
 class Playlist {
-  constructor(name, id, image, totalTracks) {
+  constructor(name, id, image, totalTracks, version) {
     this.name = name;
     this.id = id;
     this.image = image;
     this.totalTracks = totalTracks;
-    this.color = getColorForPlaylist(name);
+    this.color = name == undefined ? "" : getColorForPlaylist(name);
+    this.version = version;
 
     this.tracks = [];
   }

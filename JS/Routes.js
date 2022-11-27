@@ -79,6 +79,7 @@ async function authorization(request, response, next) {
   // Save data in session
   request.session.authorization = tokenResponse.result;
   request.session.user = userResponse.result;
+  request.session.cachedPlaylists = {};
 
   response.redirect("/home");
 }
@@ -127,10 +128,26 @@ async function playlist(request, response, next) {
     return;
   }
 
-  const { authorization, user, playlists } = request.session;
+  const { authorization, user, playlists, cachedPlaylists } = request.session;
   const accessToken = authorization.accessToken;
 
-  let playlist = await redisClient.get(playlistId);
+  const versionResponse = await SpotifyAPI.getPlaylist(
+    accessToken,
+    playlistId,
+    "snapshot_id"
+  );
+
+  let version = versionResponse.success ? versionResponse.result.version : null;
+  if (versionResponse.success === false) {
+    next(versionResponse.error);
+  }
+
+  let playlist = null;
+  if (playlistId in cachedPlaylists && version === cachedPlaylists[playlistId]) {
+    const serializedPlaylist = await redisClient.get(playlistId);
+    playlist = JSON.parse(serializedPlaylist);
+  }
+
   if (!playlist) {
     // If playlist is not cached, get from API
     const playlistResponse = await SpotifyAPI.getPlaylist(accessToken, playlistId);
@@ -139,7 +156,9 @@ async function playlist(request, response, next) {
       return;
     }
 
+    // Save snapshot id of playlist in session
     playlist = playlistResponse.result;
+    cachedPlaylists[playlist.id] = playlist.snapshotId;
 
     // Get tracks in playlist
     const tracksResponse = await SpotifyAPI.getPlaylistTracks(accessToken, playlist);
@@ -150,8 +169,6 @@ async function playlist(request, response, next) {
 
     // Save playlist in cache
     await redisClient.set(playlistId, JSON.stringify(playlist));
-  } else {
-    playlist = JSON.parse(playlist);
   }
 
   // Save playlist in session
@@ -177,7 +194,7 @@ async function shuffle(request, response, next) {
     response.cookie(HIDE_WARNING_COOKIE, true);
   }
 
-  const playlist = request.session.playlist;
+  const { playlist, cachedPlaylists } = request.session;
   const accessToken = request.session.authorization.accessToken;
 
   if (playlist.tracks.length === 0) {
@@ -189,7 +206,16 @@ async function shuffle(request, response, next) {
   await SpotifyAPI.clearPlaylist(accessToken, playlist);
   await SpotifyAPI.addTracksToPlaylist(accessToken, playlist);
 
-  playlist.image = await SpotifyAPI.getPlaylistImage(accessToken, playlist);
+  const fields = "images,snapshot_id";
+  const imageResult = await SpotifyAPI.getPlaylist(accessToken, playlist.id, fields);
+  if (imageResult.success === false) {
+    next(imageResult.error);
+  }
+
+  console.log(imageResult);
+
+  playlist.image = imageResult.result.image;
+  cachedPlaylists[playlist.id] = imageResult.result.version;
 
   // Update cache
   await redisClient.set(playlist.id, JSON.stringify(playlist));

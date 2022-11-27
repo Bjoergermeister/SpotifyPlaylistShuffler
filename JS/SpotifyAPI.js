@@ -124,11 +124,12 @@ class SpotifyAPI {
     }
   }
 
-  static async getPlaylist(accessToken, id) {
+  static async getPlaylist(accessToken, id, fields = undefined) {
+    fields = fields || "id,images,name,tracks.total,snapshot_id";
     const options = getRequestOptions("GET", accessToken);
 
     try {
-      const url = `${BASE_URL}/playlists/${id}?fields=id,images,name,tracks.total`;
+      const url = `${BASE_URL}/playlists/${id}?fields=${fields}`;
       const response = await fetch(url, options);
       const body = await response.json();
 
@@ -136,27 +137,20 @@ class SpotifyAPI {
         throw new ApiError(response.status, body, "Getting playlist failed", false);
       }
 
-      const imageUrl = body.images.length > 0 ? body.images[0].url : "";
-      const playlist = new Playlist(body.name, body.id, imageUrl, body.tracks.total);
+      // Resolve possible null/undefined values due to different fields
+      const hasImages = body.images !== undefined && body.images.length > 0;
+      const imageUrl = hasImages ? body.images[0].url : "";
+      const tracks = body.tracks !== undefined ? body.tracks.total : 0;
+
+      const playlist = new Playlist(
+        body.name,
+        body.id,
+        imageUrl,
+        tracks,
+        body.snapshot_id
+      );
 
       return getSuccessResponse(playlist);
-    } catch (error) {
-      return getErrorResponse(error);
-    }
-  }
-
-  static async getPlaylistImage(accessToken, playlist) {
-    try {
-      const options = getRequestOptions("GET", accessToken);
-      const url = `${BASE_URL}/playlists/${playlist.id}?fields=images`;
-      const response = await fetch(url, options);
-      const body = await response.json();
-
-      if (response.status !== 200) {
-        throw new ApiError(response.stauts, body, "Getting playlist image failed", false);
-      }
-
-      return body.images[0].url;
     } catch (error) {
       return getErrorResponse(error);
     }
